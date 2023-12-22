@@ -41,3 +41,85 @@ jobs:
           fi
 
           exit $PROBLEMS
+
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      image-version: ${{ steps.image-version.outputs.image-version }}
+      releases: ${{ steps.release.outputs.releases }}
+    env:
+      DEFAULT_RELEASE: 'unstable'
+      IMAGE_VERSION: '0.0'
+    steps:
+      - name: Install prerequisites
+        run: |
+          echo "::group::Apt"
+          sudo apt-get update --quiet
+          sudo apt-get install --no-install-recommends --yes jq
+          echo "::endgroup::"
+
+          echo "::group::jq version"
+          jq --version
+          echo "::endgroup::"
+
+      - name: Checking image version
+        id: image-version
+        run: |
+          version="${IMAGE_VERSION}"
+          case "${{ format('{0}:{1}', github.event_name, github.ref) }}" in
+            push:refs/tags/*) version="${{ github.ref_name }}" ;;
+            *) ;;
+          esac
+
+          echo "::group::Outputs"
+          echo "image-version=${version}" | tee -a "${GITHUB_OUTPUT}"
+          echo "::endgroup::"
+
+      - name: Generate supported matrix
+        id: release
+        run: |
+          releases_json="[]"
+          for release in experimental unstable testing stable; do
+            obj_json="{\"vendor\": \"debian\", \"release\": \"${release}\"}"
+
+            content="$(wget -q -O - "https://deb.debian.org/debian/dists/${release}/Release" | grep -v '^ ')"
+
+            archs=()
+            for arch in $(echo "${content}" | awk '/^Architectures:/ {$1=""; $2=""; $0=$0; print $0}'); do
+              # https://github.com/hustle-ci/debian-build-action/issues/5
+              [ "${arch}" != "mipsel" ] || continue
+
+              archs+=("${arch}")
+            done
+            obj_json="$(echo "${obj_json}" | jq -c -M ".architectures=\"${archs[*]}\"")"
+
+            aliases=("${release}")
+            aliases+=("$(echo "${content}" | awk '/^Codename:/ {print $2}')")
+            [ "${release}" != "${DEFAULT_RELEASE}" ] || aliases+=(latest)
+            obj_json="$(echo "${obj_json}" | jq -c -M ".aliases=\"${aliases[*]}\"")"
+
+            releases_json="$(echo "${releases_json}" | jq -c -M ". + [${obj_json}]")"
+          done
+
+          echo "::group::Outputs"
+          echo "releases=${releases_json}" | tee -a "${GITHUB_OUTPUT}"
+          echo "::endgroup::"
+
+  base-images:
+    needs:
+      - generate-matrix
+      - static-checks
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.generate-matrix.outputs.releases) }}
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/build-image.yml
+    with:
+      vendor: ${{ matrix.vendor }}
+      release: ${{ matrix.release }}
+      architectures: ${{ matrix.architectures }}
+      target: 'base'
+      image_version: ${{ needs.generate-matrix.outputs.image-version }}
+      tag_prefix: ${{ github.run_id }}-
