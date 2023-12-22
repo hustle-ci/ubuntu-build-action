@@ -1,0 +1,26 @@
+# Copyright 2023 You-Sheng Yang and others
+# SPDX-License-Identifier: FSFAP
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved. This file is offered as-is, without any warranty.
+---
+name: 'CI'
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - LICENSE
+      - 'README.*'
+  pull_request:
+    paths-ignore:
+      - LICENSE
+      - 'README.*'
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
