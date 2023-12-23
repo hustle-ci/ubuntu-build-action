@@ -18,9 +18,26 @@ on:
       - 'README.*'
 
 jobs:
-  images:
+  static-checks:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: 'Install prerequisites'
+        run: |
+          sudo apt-get update --quiet
+          sudo apt-get install --no-install-recommends -y \
+              licensecheck
 
+      - name: 'Check license'
+        run: |
+          PROBLEMS=0
+
+          BAD_FILES=$(licensecheck -r . | grep -Ev '(README.md)'| grep UNKNOWN) || true
+          if [ -n "${BAD_FILES}" ]; then
+            echo "ERROR: Missing license statement in the following files:"
+            echo "$BAD_FILES"
+            PROBLEMS=$(($PROBLEMS + 1))
+          fi
+
+          exit $PROBLEMS
