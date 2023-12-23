@@ -62,3 +62,33 @@ RUN set -eux; \
 	rm -rf /var/lib/apt
 
 COPY scripts/extract-source.sh /usr/local/bin/extract-source.sh
+
+################################################################################
+
+FROM base AS generic-tests
+
+# install dependencies for check rc bugs
+RUN set -eux; \
+	apt-get update --quiet; \
+	if [ -n "$(apt-cache search --names-only ^python3-junit\\.xml\$)" ]; then \
+		eatmydata apt-get install --no-install-recommends -y \
+			python3-debianbts \
+			python3-junit.xml \
+		; \
+	fi; \
+	:
+
+# install dependencies for check for missing replaces
+RUN set -eux; \
+	eatmydata apt-get install -y apt-file python3-debian; \
+	if [ -z "$(apt-cache search --names-only ^python3-junit\\.xml\$)" ]; then \
+		eatmydata apt-get install --no-install-recommends -y \
+			python3-pip \
+		; \
+		pip3 install junit-xml; \
+	else \
+		eatmydata apt-get install --no-install-recommends -y \
+			python3-junit.xml \
+		; \
+	fi; \
+	:
