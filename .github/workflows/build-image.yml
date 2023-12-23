@@ -135,6 +135,7 @@ jobs:
           no-cache: true
           outputs: type=image,push=true
           platforms: ${{ steps.transform.outputs.platforms }}
+          provenance: false
           tags: ${{ steps.meta.outputs.tags }}
           target: ${{ inputs.target }}
 

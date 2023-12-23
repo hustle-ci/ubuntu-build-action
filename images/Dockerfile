@@ -4,7 +4,14 @@
 # permitted in any medium without royalty provided the copyright notice and
 # this notice are preserved. This file is offered as-is, without any warranty.
 
-ARG BASE_IMAGE
+ARG BASE_IMAGE=debian
+
+################################################################################
+
+FROM bash AS dummy
+
+################################################################################
+
 FROM ${BASE_IMAGE} AS base
 
 ARG VENDOR

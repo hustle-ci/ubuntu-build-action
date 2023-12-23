@@ -123,3 +123,15 @@ jobs:
       target: 'base'
       image_version: ${{ needs.generate-matrix.outputs.image-version }}
       tag_prefix: ${{ github.run_id }}-
+
+  prune-staging-tags:
+    needs:
+      - base-images
+    if: ${{ always() }}
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/prune-staging-tags.yml
+    with:
+      prune-tags-regexes: |
+        ^${{ github.run_id }}-

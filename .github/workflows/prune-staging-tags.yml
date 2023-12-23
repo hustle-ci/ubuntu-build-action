@@ -1,0 +1,78 @@
+# Copyright 2023 You-Sheng Yang and others
+# SPDX-License-Identifier: FSFAP
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved. This file is offered as-is, without any warranty.
+---
+name: 'prune staging tags'
+on:
+  workflow_call:
+    inputs:
+      prune-tags-regexes:
+        description: >-
+          `prune-tags-regexes` passed to vlaurin/action-ghcr-prune action. 
+          '__all__' to prune everything.
+        type: string
+        required: true
+
+jobs:
+
+  # A container package must have at least one tag inside. So we push a dummy
+  # one before pruing everything else.
+  push-dummy-tag:
+    runs-on: ubuntu-latest
+    if: inputs.prune-tags-regexes == '__all__'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if a dummy image is available already
+        id: check-dummy
+        run: |
+          available=
+          if docker pull ghcr.io/${{ github.repository_owner }}/staging:dummy; then
+            available=true
+          fi
+
+          echo "::group::Outputs"
+          echo "available=${available}" | tee -a "${GITHUB_OUTPUT}"
+          echo "::endgroup::"
+
+      - name: Push a dummy image
+        if: ${{ ! steps.check-dummy.outputs.available }}
+        uses: docker/build-push-action@v5
+        with:
+          context: 'images'
+          outputs: type=image,push=true
+          tags: "ghcr.io/${{ github.repository_owner }}/staging:dummy"
+          target: 'dummy'
+
+  prune-staging-tags:
+    needs:
+      - push-dummy-tag
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Prune staging images
+        uses: vlaurin/action-ghcr-prune@v0.5.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          organization: ${{ github.repository_owner }}
+          container: 'staging'
+          dry-run: false
+          prune-tags-regexes: |
+            ${{ inputs.prune-tags-regexes == '__all__' && '^[0-9]' || inputs.prune-tags-regexes }}
+          prune-untagged: ${{ inputs.prune-tags-regexes == '__all__' }}
