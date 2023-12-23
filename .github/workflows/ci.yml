@@ -54,6 +54,7 @@ jobs:
     outputs:
       image-version: ${{ steps.image-version.outputs.image-version }}
       releases: ${{ steps.release.outputs.releases }}
+      default_index: ${{ steps.release.outputs.default_index }}
     env:
       DEFAULT_RELEASE: 'unstable'
       IMAGE_VERSION: '0.0'
@@ -108,8 +109,12 @@ jobs:
             releases_json="$(echo "${releases_json}" | jq -c -M ". + [${obj_json}]")"
           done
 
+          default_index=$(echo "${releases_json}" | \
+              jq ". | map(.release == \"${DEFAULT_RELEASE}\") | index(true)")
+
           echo "::group::Outputs"
           echo "releases=${releases_json}" | tee -a "${GITHUB_OUTPUT}"
+          echo "default_index=${default_index}" | tee -a "${GITHUB_OUTPUT}"
           echo "::endgroup::"
 
   base-images:
@@ -137,10 +142,38 @@ jobs:
           tag_prefix: ${{ github.run_id }}-
           ghcr_password: ${{ secrets.GITHUB_TOKEN }}
 
+  latest-amd64-images:
+    runs-on: ubuntu-latest
+    needs:
+      - generate-matrix
+      - base-images
+    strategy:
+      matrix:
+        target:
+          - 'gbp'
+        include:
+          - ${{ fromJSON(needs.generate-matrix.outputs.releases)[fromJSON(needs.generate-matrix.outputs.default_index)] }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/build-image
+        with:
+          vendor: ${{ matrix.vendor }}
+          release: ${{ matrix.release }}
+          target: ${{ matrix.target }}
+          image_version: ${{ needs.generate-matrix.outputs.image-version }}
+          tag_prefix: ${{ github.run_id }}-
+          ghcr_password: ${{ secrets.GITHUB_TOKEN }}
+
   publish-staging-tags:
     needs:
       - generate-matrix
       - base-images
+      - latest-amd64-images
     strategy:
       matrix:
         include: ${{ fromJSON(needs.generate-matrix.outputs.releases) }}

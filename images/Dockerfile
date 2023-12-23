@@ -32,3 +32,27 @@ RUN set -eux; \
 	apt-get clean; \
 	rm -rf /var/lib/apt
 
+################################################################################
+
+FROM base AS gbp
+
+# Add deb-src entries
+RUN set -eux; \
+	if [ -f /etc/apt/sources.list ]; then \
+		sed -n '/^deb\s/s//deb-src /p' /etc/apt/sources.list > /etc/apt/sources.list.d/deb-src.list; \
+	fi; \
+	if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+		sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/debian.sources; \
+	fi; \
+	:
+
+RUN set -eux; \
+	apt-get update --quiet; \
+	apt-get upgrade -y; \
+	eatmydata apt-get install --no-install-recommends -y \
+		curl \
+		git-buildpackage \
+		pristine-tar \
+		unzip \
+	; \
+	rm -rf /var/lib/apt

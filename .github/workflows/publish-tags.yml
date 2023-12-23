@@ -49,6 +49,9 @@ jobs:
         id: transform
         run: |
           targets=(base)
+          if echo "${{ inputs.aliases }}" | grep -q latest; then
+            targets+=(gbp)
+          fi
           targets_json="$(jq -c -M -n '$ARGS.positional' --args "${targets[@]}")"
 
           echo "::group::Outputs"
@@ -124,15 +127,21 @@ jobs:
           done <<<"${DOCKER_METADATA_OUTPUT_ANNOTATIONS}"
 
           staging_img=ghcr.io/${{ github.repository_owner }}/staging:${{ github.run_id }}-${{ matrix.target }}-${{ inputs.release }}
-          digests="$(docker buildx imagetools inspect --format '{{range .Manifest.Manifests}}{{println .Digest}}{{end}}' "${staging_img}")"
-          echo "::group::Digests"
-          echo "${digests}"
-          echo "::endgroup::"
+          if [ ${{ matrix.target }} = "base" ]; then
+            digests="$(docker buildx imagetools inspect --format '{{range .Manifest.Manifests}}{{println .Digest}}{{end}}' "${staging_img}")"
+            echo "::group::Digests"
+            echo "${digests}"
+            echo "::endgroup::"
 
-          echo "::group::Create image from ${staging_img}"
-          echo "${digests}" | sed "s,^,${staging_img}@," | \
-              xargs docker buildx imagetools create ${DRY_RUN_ARG} "${tags[@]}" "${annotations[@]}"
-          echo "::endgroup::"
+            echo "::group::Create image from ${staging_img}"
+            echo "${digests}" | sed "s,^,${staging_img}@," | \
+                xargs docker buildx imagetools create ${DRY_RUN_ARG} "${tags[@]}" "${annotations[@]}"
+            echo "::endgroup::"
+          else
+            echo "::group::Create image from ${staging_img}"
+            docker buildx imagetools create ${DRY_RUN_ARG} "${tags[@]}" "${staging_img}"
+            echo "::endgroup::"
+          fi
 
           if [ -z "${DRY_RUN_ARG}" ]; then
             built_image=ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ inputs.release }}

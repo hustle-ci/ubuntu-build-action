@@ -122,7 +122,7 @@ runs:
             VENDOR=${{ inputs.vendor }}
             RELEASE=${{ inputs.release }}
         labels: ${{ steps.meta.outputs.labels }}
-        annotations: ${{ steps.meta.outputs.annotations }}
+        annotations: ${{ contains(steps.transform.outputs.platforms, ',') && steps.meta.outputs.annotations || '' }}
         no-cache: true
         outputs: type=image,push=true
         platforms: ${{ steps.transform.outputs.platforms }}
