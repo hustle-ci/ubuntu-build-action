@@ -201,3 +201,23 @@ jobs:
           release: ${{ inputs.release }}
           source_path: 'source'
           build_type: ${{ matrix.build-type }}
+
+  missing-breaks:
+    needs:
+      - full-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download binary tarball
+        uses: actions/download-artifact@v3
+        with:
+          name: per-action-binary-${{ inputs.release }}-amd64-amd64
+
+      - name: Check missing-breaks
+        id: missing-breaks
+        uses: ./actions/missing-breaks
+        with:
+          image: ${{ format('ghcr.io/{0}/staging:{1}-generic-tests-{2}', github.repository_owner, github.run_id, inputs.release) }}
+          release: ${{ inputs.release }}

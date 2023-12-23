@@ -228,6 +228,7 @@ jobs:
       - generate-matrix
       - base-images
       - latest-amd64-images
+      - all-releases-only-amd64-images
     uses: ./.github/workflows/tests.yml
     with:
       releases: ${{ needs.generate-matrix.outputs.releases }}

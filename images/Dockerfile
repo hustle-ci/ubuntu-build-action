@@ -92,3 +92,6 @@ RUN set -eux; \
 		; \
 	fi; \
 	:
+
+COPY scripts/check_for_missing_breaks_replaces.py /usr/local/bin/check_for_missing_breaks_replaces.py
+COPY scripts/missing-breaks.sh /usr/local/bin/missing-breaks.sh

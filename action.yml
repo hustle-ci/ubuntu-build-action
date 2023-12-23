@@ -15,6 +15,9 @@ inputs:
   gbp_image:
     description: gbp docker image
     default: ''
+  generic_tests_image:
+    description: generic-tests docker image
+    default: ''
   release:
     description: >-
       Specify the target release to run the workflow. By default, everything
@@ -78,6 +81,10 @@ outputs:
     description: >-
       The actual `output_path` used.
     value: ${{ steps.extract.outputs.output_path }}
+  missing_breaks_report_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where built report is stored.
+    value: ${{ steps.missing-breaks.outputs.report_path }}
 
 runs:
   using: 'composite'
@@ -104,3 +111,11 @@ runs:
         build_twice: ${{ inputs.build_twice }}
         build_args: ${{ inputs.build_args }}
         version_bump: ${{ inputs.version_bump }}
+    - name: missing-breaks test
+      id: missing-breaks
+      uses: ./actions/missing-breaks
+      with:
+        image: ${{ inputs.generic_tests_image }}
+        release: ${{ inputs.release }}
+        source_path: ${{ steps.build.outputs.output_path }}
+        output_path: ${{ steps.build.outputs.output_path }}
