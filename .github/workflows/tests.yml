@@ -24,6 +24,7 @@ jobs:
     with:
       release: ${{ matrix.release }}
       default_release: ${{ inputs.default_release }}
+      architectures: ${{ matrix.architectures }}
 
   test-full-action:
     runs-on: ubuntu-latest
@@ -42,7 +43,9 @@ jobs:
         id: top-action
         uses: ./
         with:
+          base_image: ${{ format('ghcr.io/{0}/staging:{1}-base-{2}', github.repository_owner, github.run_id, matrix.release) }}
           gbp_image: ${{ format('ghcr.io/{0}/staging:{1}-gbp-{2}', github.repository_owner, github.run_id, inputs.default_release) }}
+          release: ${{ matrix.release }}
           source_path: ${{ steps.clone.outputs.source_path }}
           output_path: ${{ hashFiles('action.yml', 'actions/*/action.yml') }}
 

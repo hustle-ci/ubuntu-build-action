@@ -18,6 +18,10 @@ on:
           Empty string as an alias to `inputs.release`.
         type: string
         default: ''
+      architectures:
+        description: 'Space-separated debian architecture names.'
+        type: string
+        required: true
 
 env:
   ARCHIVED_SOURCE_TAR_SUFFIX: .source.tar.gz
@@ -61,3 +65,139 @@ jobs:
           path: |
             ${{ steps.extract.outputs.output_path }}
           if-no-files-found: error
+
+  generate-matrix:
+    outputs:
+      full-build: ${{ steps.generate.outputs.full-build }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install prerequisites
+        run: |
+          echo "::group::Apt"
+          sudo apt-get update --quiet
+          sudo apt-get install --no-install-recommends --yes jq
+          echo "::endgroup::"
+
+          echo "::group::jq version"
+          jq --version
+          echo "::endgroup::"
+
+      - name: Fetch supported architectures
+        id: generate
+        run: |
+          full_build="[]"
+          for arch in ${{ inputs.architectures }}; do
+            attrs="\"build-arch\": \"${arch}\""
+            full_build="$(echo "${full_build}" | jq -c -M ". + [{${attrs}}]")"
+          done
+
+          first_non_amd64_arch="$(echo "${full_build}" | jq -c -M -r '[.[] | select(."build-arch" != "amd64")][0]."build-arch"')"
+          if [ "${first_non_amd64_arch}" != "null" ]; then
+            attrs="\"build-arch\": \"amd64\", \"host-arch\": \"${first_non_amd64_arch}\""
+            full_build="$(echo "${full_build}" | jq -c -M ". + [{${attrs}}]")"
+          fi
+
+          # continue-on-error on known failure architectures: <release>:(build-arch|host-arch):<arch>
+          coes=()
+          for coe in "${coes[@]}"; do
+            r="${coe%%:*}"; coe="${coe#*:}"; a="${coe#*:}"; m="${coe%:*}"
+            [ "${r}" = "${{ inputs.release }}" ] \
+                && full_build="$(echo "${full_build}" | jq -c -M ".[map(.\"${m}\" == \"${a}\") | index(true)].\"continue-on-error\" = \"true\"")"
+          done
+
+          echo "::group::Outputs"
+          echo "full-build=${full_build}" | tee -a "${GITHUB_OUTPUT}"
+          echo "::endgroup::"
+
+  full-build:
+    needs:
+      - extract-source
+      - generate-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.generate-matrix.outputs.full-build) }}
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ !!matrix.continue-on-error }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download source tarball
+        uses: actions/download-artifact@v3
+        with:
+          name: per-action-source-${{ inputs.release }}
+      # Github ations/upload-artifact does not retain artifact permissions.
+      # See: https://github.com/actions/upload-artifact/issues/38
+      - name: Extract archived source directory
+        run: |
+          mkdir source
+          tar axf *"${ARCHIVED_SOURCE_TAR_SUFFIX}" -C source
+
+      # Add support for more platforms with QEMU (optional)
+      # https://github.com/docker/setup-qemu-action
+      - name: Set up QEMU
+        if: ${{ matrix.build-arch != 'amd64' || (matrix.host-arch && matrix.host-arch != 'amd64') }}
+        uses: docker/setup-qemu-action@v3
+
+      - name: Build package
+        id: full-build
+        uses: ./actions/gbp
+        env:
+          # We're not interested in whether package specific test cases work at
+          # this moment.
+          DEB_BUILD_OPTIONS: nocheck
+        with:
+          image: ${{ format('ghcr.io/{0}/staging:{1}-base-{2}', github.repository_owner, github.run_id, inputs.release) }}
+          release: ${{ inputs.release }}
+          source_path: 'source'
+          build_arch: ${{ matrix.build-arch }}
+          host_arch: ${{ matrix.host-arch }}
+
+      - name: Upload binary package
+        uses: actions/upload-artifact@v3
+        with:
+          name: per-action-binary-${{ steps.full-build.outputs.release }}-${{ steps.full-build.outputs.build_arch }}-${{ steps.full-build.outputs.host_arch }}
+          path: |
+            ${{ steps.full-build.outputs.output_path }}/*.build
+            ${{ steps.full-build.outputs.output_path }}/*.buildinfo
+            ${{ steps.full-build.outputs.output_path }}/*.changes
+            ${{ steps.full-build.outputs.output_path }}/*.deb
+            ${{ steps.full-build.outputs.output_path }}/*.debian.tar.*
+            ${{ steps.full-build.outputs.output_path }}/*.dsc
+          if-no-files-found: error
+
+  build-types:
+    needs:
+      - extract-source
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type:
+          - source
+          - binary
+          - any
+          - all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download source tarball
+        uses: actions/download-artifact@v3
+        with:
+          name: per-action-source-${{ inputs.release }}
+      # Github ations/upload-artifact does not retain artifact permissions.
+      # See: https://github.com/actions/upload-artifact/issues/38
+      - name: Extract archived source directory
+        run: |
+          mkdir source
+          tar axf *"${ARCHIVED_SOURCE_TAR_SUFFIX}" -C source
+
+      - name: Build package
+        uses: ./actions/gbp
+        with:
+          image: ${{ format('ghcr.io/{0}/staging:{1}-base-{2}', github.repository_owner, github.run_id, inputs.release) }}
+          release: ${{ inputs.release }}
+          source_path: 'source'
+          build_type: ${{ matrix.build-type }}

@@ -34,6 +34,7 @@ RUN set -eux; \
 	rm -rf /var/lib/apt
 
 COPY scripts/lib.sh /usr/local/bin/lib.sh
+COPY scripts/gbp.sh /usr/local/bin/gbp.sh
 
 ################################################################################
 

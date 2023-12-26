@@ -1,0 +1,84 @@
+# Copyright 2023 You-Sheng Yang and others
+# SPDX-License-Identifier: FSFAP
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved. This file is offered as-is, without any warranty.
+---
+name: 'gbp-action'
+description: 'Debian package gbp action'
+author: 'vicamo'
+
+inputs:
+  image:
+    description: Target docker image to launch.
+    default: ''
+  release:
+    description: >-
+      Specify the target release to run the workflow. By default, everything
+      will run on the 'unstable' suite. The following releases are currently
+      supported:
+
+      * experimental
+
+      * unstable (default)
+
+      * testing
+
+      * stable
+    default: 'unstable'
+  source_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where source root is stored. Default is
+      `GITHUB_WORKSPACE`.
+    default: ''
+  build_arch:
+    description: 'Debian architecture. Default: image architecture.'
+    default: ''
+  host_arch:
+    description: 'Debian architecture. Default: same as `build_arch`.'
+    default: ''
+  build_type:
+    description: 'all|any|binary|source|full. Default: full`.'
+    default: 'full'
+  build_twice:
+    description: >-
+      Build the package twice. Boolean. Default: false.
+    default: 'false'
+  build_args:
+    description: 'Additional arguments to `dpkg-buildpackage`.'
+    default: ''
+  version_bump:
+    description: >-
+      Automatically bump debian version. Boolean. Default 'false' when
+      `build_type` is 'source'; 'true' otherwise.
+    default: ''
+
+outputs:
+  output_path:
+    description: >-
+      The actual `output_path` used. This will always be the parent directory of
+      the `source_path`.
+  release:
+    description: 'The actual `release` used.'
+  source_path:
+    description: 'The actual `source_path` used.'
+  build_arch:
+    description: 'The actual `build_arch` used.'
+  host_arch:
+    description: 'The actual `host_arch` used.'
+  build_type:
+    description: 'The actual `build_type` used.'
+  build_twice:
+    description: 'The actual `build_twice` used.'
+  version_bump:
+    description: 'The actual `version_bump` used.'
+
+runs:
+  using: 'docker'
+  image: 'ghcr.io/hustle-ci/launcher:latest'
+  args:
+    - '/start.sh'
+    - '--entrypoint'
+    - '/usr/local/bin/gbp.sh'
+    - '--'
+    - ${{ inputs.image || format('ghcr.io/hustle-ci/base:{0}', inputs.release) }}

@@ -9,9 +9,26 @@ description: 'Debian package build action'
 author: 'vicamo'
 
 inputs:
+  base_image:
+    description: base docker image
+    default: ''
   gbp_image:
     description: gbp docker image
     default: ''
+  release:
+    description: >-
+      Specify the target release to run the workflow. By default, everything
+      will run on the 'unstable' suite. The following releases are currently
+      supported:
+
+      * experimental
+
+      * unstable (default)
+
+      * testing
+
+      * stable
+    default: 'unstable'
   source_path:
     description: >-
       Relative path to GITHUB_WORKSPACE where source root is stored. Default is
@@ -29,6 +46,27 @@ inputs:
     default: 'true'
   source_args:
     description: 'Additional arguments to `gbp buildpackage`.'
+    default: ''
+  build_arch:
+    description: 'Debian architecture. Default: image architecture.'
+    default: ''
+  host_arch:
+    description: 'Debian architecture. Default: same as `build_arch`.'
+    default: ''
+  build_type:
+    description: 'all|any|binary|source|full. Default: full`.'
+    default: 'full'
+  build_twice:
+    description: >-
+      Build the package twice. Boolean. Default: false.
+    default: 'false'
+  build_args:
+    description: 'Additional arguments to `dpkg-buildpackage`.'
+    default: ''
+  version_bump:
+    description: >-
+      Automatically bump debian version. Boolean. Default 'false' when
+      `build_type` is 'source'; 'true' otherwise.
     default: ''
 
 outputs:
@@ -53,3 +91,16 @@ runs:
         output_path: ${{ inputs.output_path }}
         setup_gitattributes: ${{ inputs.setup_gitattributes }}
         source_args: ${{ inputs.source_args }}
+    - name: Build binary packages
+      id: build
+      uses: ./actions/gbp
+      with:
+        image: ${{ inputs.base_image }}
+        release: ${{ inputs.release }}
+        source_path: ${{ steps.extract.outputs.built_source_path }}
+        build_arch: ${{ inputs.build_arch }}
+        host_arch: ${{ inputs.host_arch }}
+        build_type: ${{ inputs.build_type }}
+        build_twice: ${{ inputs.build_twice }}
+        build_args: ${{ inputs.build_args }}
+        version_bump: ${{ inputs.version_bump }}
