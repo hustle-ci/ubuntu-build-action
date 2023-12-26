@@ -48,7 +48,7 @@ jobs:
       - name: Transform meta tags patterns
         id: transform
         run: |
-          targets=(base generic-tests)
+          targets=(base generic-tests lintian)
           if echo "${{ inputs.aliases }}" | grep -q latest; then
             targets+=(gbp)
           fi

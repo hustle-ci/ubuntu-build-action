@@ -138,7 +138,7 @@ jobs:
       - name: Generate release matrix with selected targets
         id: release-target
         run: |
-          targets=(generic-tests)
+          targets=(generic-tests lintian)
           targets_json="$(jq -c -M -n '$ARGS.positional' --args "${targets[@]}")"
           releases_json='${{ steps.release.outputs.releases }}'
           output_json="$(echo "${targets_json}" | jq -c -M "${releases_json} as \$releases | [.[] as \$in | (\$releases[] | . + {\"target\": \$in})]")"

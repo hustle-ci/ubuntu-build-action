@@ -97,3 +97,29 @@ COPY scripts/check_rc_bugs.py /usr/local/bin/check_rc_bugs.py
 COPY scripts/rc-bugs.sh /usr/local/bin/rc-bugs.sh
 COPY scripts/check_for_missing_breaks_replaces.py /usr/local/bin/check_for_missing_breaks_replaces.py
 COPY scripts/missing-breaks.sh /usr/local/bin/missing-breaks.sh
+
+################################################################################
+
+FROM base AS lintian
+
+RUN set -eux; \
+	printf 'Package: *\nPin: release a=%s\nPin-Priority: 900\n' "$RELEASE" \
+		| tee /etc/apt/preferences.d/salsa-ci; \
+	apt-get update --quiet; \
+	apt-get upgrade -y; \
+	eatmydata apt-get install --no-install-recommends -y \
+		git \
+		lintian \
+	; \
+	if [ -z "$(apt-cache search --names-only ^python3-junit\\.xml\$)" ]; then \
+		eatmydata apt-get install --no-install-recommends -y \
+			python3-pip \
+		; \
+		pip3 install junit-xml; \
+	else \
+		eatmydata apt-get install --no-install-recommends -y \
+			python3-junit.xml \
+		; \
+	fi; \
+	rm -rf /var/lib/apt; \
+	:
