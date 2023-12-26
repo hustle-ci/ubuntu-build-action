@@ -49,6 +49,21 @@ jobs:
 
           exit $PROBLEMS
 
+      - name: 'reviewdog/shellcheck'
+        uses: haya14busa/action-cond@v1
+        id: reporter
+        with:
+          cond: ${{ github.event_name == 'pull_request' }}
+          if_true: "github-pr-review"
+          if_false: "github-check"
+      - uses: reviewdog/action-shellcheck@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: ${{ steps.reporter.outputs.value }}
+          level: warning
+          exclude: |
+            */.git/*
+
   generate-matrix:
     runs-on: ubuntu-latest
     outputs:
