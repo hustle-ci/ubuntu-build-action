@@ -1,0 +1,72 @@
+# Copyright 2023 You-Sheng Yang and others
+# SPDX-License-Identifier: FSFAP
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved. This file is offered as-is, without any warranty.
+---
+name: 'lintian-action'
+description: 'Debian package lintian action'
+author: 'vicamo'
+
+inputs:
+  image:
+    description: Target docker image to launch.
+    default: ''
+  release:
+    description: >-
+      Specify the target release to run the workflow. By default, everything
+      will run on the 'unstable' suite. The following releases are currently
+      supported:
+
+      * experimental
+
+      * unstable (default)
+
+      * testing
+
+      * stable
+    default: 'unstable'
+  source_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where debian changes file is stored.
+      Default is `GITHUB_WORKSPACE`.
+    default: ''
+  output_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where built artifacts should be stored.
+      Default is `source_path`/debian/output.
+    default: ''
+  fatal_warning:
+    description: 'Fail the test at warning condition. Default: false.'
+    default: 'false'
+  show_overrides:
+    description: 'To make Lintian show overridden tags. Default: false.'
+    default: 'false'
+  suppress_tags:
+    description: 'Suppress the listed tags.'
+    default: ''
+  args:
+    description: >-
+      Arguments appended to lintian's generated arguments.
+    default: ''
+
+outputs:
+  output_path:
+    description: >-
+      The actual `output_path` used.
+  xml_report_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where built xml report is stored.
+  html_report_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where built html report is stored.
+
+runs:
+  using: 'docker'
+  image: 'ghcr.io/hustle-ci/launcher:latest'
+  args:
+    - '/start.sh'
+    - '--entrypoint'
+    - '/usr/local/bin/lintian.sh'
+    - '--'
+    - ${{ inputs.image || format('ghcr.io/hustle-ci/lintian:{0}', inputs.release) }}

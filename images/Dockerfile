@@ -123,3 +123,6 @@ RUN set -eux; \
 	fi; \
 	rm -rf /var/lib/apt; \
 	:
+
+COPY scripts/lintian2junit.py /usr/local/bin/lintian2junit.py
+COPY scripts/lintian.sh /usr/local/bin/lintian.sh

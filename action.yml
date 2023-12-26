@@ -18,6 +18,9 @@ inputs:
   generic_tests_image:
     description: generic-tests docker image
     default: ''
+  lintian_image:
+    description: lintian docker image
+    default: ''
   release:
     description: >-
       Specify the target release to run the workflow. By default, everything
@@ -71,6 +74,19 @@ inputs:
       Automatically bump debian version. Boolean. Default 'false' when
       `build_type` is 'source'; 'true' otherwise.
     default: ''
+  lintian_fatal_warning:
+    description: 'Fail the test at warning condition. Default: false.'
+    default: 'false'
+  lintian_show_overrides:
+    description: 'To make Lintian show overridden tags. Default: false.'
+    default: 'false'
+  lintian_suppress_tags:
+    description: 'Suppress the listed tags.'
+    default: ''
+  lintian_args:
+    description: >-
+      Arguments appended to lintian's generated arguments.
+    default: ''
 
 outputs:
   source_path:
@@ -89,6 +105,14 @@ outputs:
     description: >-
       Relative path to GITHUB_WORKSPACE where built report is stored.
     value: ${{ steps.rc-bugs.outputs.report_path }}
+  lintian_xml_report_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where built report is stored.
+    value: ${{ steps.lintian.outputs.xml_report_path }}
+  lintian_html_report_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where built report is stored.
+    value: ${{ steps.lintian.outputs.html_report_path }}
 
 runs:
   using: 'composite'
@@ -131,3 +155,15 @@ runs:
         release: ${{ inputs.release }}
         source_path: ${{ steps.build.outputs.output_path }}
         output_path: ${{ steps.build.outputs.output_path }}
+    - name: lintian test
+      id: lintian
+      uses: ./actions/lintian
+      with:
+        image: ${{ inputs.lintian_image }}
+        release: ${{ inputs.release }}
+        source_path: ${{ steps.build.outputs.output_path }}
+        output_path: ${{ steps.build.outputs.output_path }}
+        fatal_warning: ${{ inputs.lintian_fatal_warning }}
+        show_overrides: ${{ inputs.lintian_show_overrides }}
+        suppress_tags: ${{ inputs.lintian_suppress_tags }}
+        args: ${{ inputs.lintian_args }}
