@@ -4,26 +4,14 @@
 # permitted in any medium without royalty provided the copyright notice and
 # this notice are preserved. This file is offered as-is, without any warranty.
 ---
-name: 'dummy'
-description: 'dummy action'
+name: 'extract-source-action'
+description: 'Debian package extract-source action'
 author: 'vicamo'
 
 inputs:
   image:
     description: Target docker image to launch.
-    default: 'ghcr.io/hustle-ci/base:latest'
-  include_env_match:
-    description: >-
-      Regular expression to match additional environment variables to pass into
-      the launched container.
-    default: ''
-  docker_args:
-    description: Additional arguments to launch the docker image.
-    default: ''
-  image_cmds:
-    description: Additional command arguments for the docker image.
-    default: ''
-
+    default: 'ghcr.io/hustle-ci/gbp:latest'
   source_path:
     description: >-
       Relative path to GITHUB_WORKSPACE where source root is stored. Default is
@@ -34,14 +22,28 @@ inputs:
       Relative path to GITHUB_WORKSPACE where built artifacts should be stored.
       Default is `source_path`/debian/output.
     default: ''
+  setup_gitattributes:
+    description: >-
+      Enable automatic `gbp setup_gitattributes` at preparing source repository.
+      Boolean. Default: 'true'.
+    default: 'true'
+  source_args:
+    description: 'Additional arguments to `gbp buildpackage`.'
+    default: ''
 
 outputs:
   source_path:
-    description: >-
-      The actual `source_path` used.
+    description: 'The actual `source_path` used.'
   output_path:
+    description: 'The actual `output_path` used.'
+  setup_gitattributes:
+    description: 'The actual `setup_gitattributes` used.'
+  built_source_path:
     description: >-
-      The actual `output_path` used.
+      Relative path of gbp extracted source directory to GITHUB_WORKSPACE. This
+      will always be `output_path`/source.'
+  built_origtar:
+    description: 'filename of gbp extracted source tarball under `output_path`.'
 
 runs:
   using: 'docker'
@@ -49,6 +51,6 @@ runs:
   args:
     - '/start.sh'
     - '--entrypoint'
-    - '/usr/local/bin/dummy.sh'
+    - '/usr/local/bin/extract-source.sh'
     - '--'
     - ${{ inputs.image }}

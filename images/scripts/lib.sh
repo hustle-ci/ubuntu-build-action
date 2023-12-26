@@ -40,3 +40,15 @@ SUDO()
   sudo --group="${_GROUP}" --user="${_USER}" --preserve-env -- "$@"
 }
 
+# $1: variable value
+# $2: default value
+fixup_boolean()
+{
+  local var="$1"
+  [ -n "$var" ] || var="$2"
+  if echo "${var}" | grep -qE '^(1|yes|true)$'; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}

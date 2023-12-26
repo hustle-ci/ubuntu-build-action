@@ -19,8 +19,11 @@ on:
         type: string
         default: ''
 
+env:
+  ARCHIVED_SOURCE_TAR_SUFFIX: .source.tar.gz
+
 jobs:
-  dummy:
+  extract-source:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,11 +33,31 @@ jobs:
         with:
           release: ${{ inputs.release }}
 
-      - name: Dummy action
-        id: dummy
-        uses: ./actions/dummy
+      - name: Extract source package
+        id: extract
+        uses: ./actions/extract-source
         with:
-          image: ${{ format('ghcr.io/{0}/staging:{1}-base-{2}', github.repository_owner, github.run_id, inputs.release) }}
+          image: ${{ format('ghcr.io/{0}/staging:{1}-gbp-{2}', github.repository_owner, github.run_id, inputs.default_release) }}
           source_path: ${{ steps.clone.outputs.source_path }}
           output_path: ${{ hashFiles('action.yml', 'actions/*/action.yml') }}
 
+      # Github ations/upload-artifact does not retain artifact permissions.
+      # See: https://github.com/actions/upload-artifact/issues/38
+      - name: Archive built source directory
+        run: |
+          cd ${{ steps.extract.outputs.output_path }}
+
+          name=${{ steps.extract.outputs.built_origtar }}
+          name="${name%.orig.*}${ARCHIVED_SOURCE_TAR_SUFFIX}"
+          tar acpf "${name}" -C source .
+
+          rm -rf source
+
+      - name: Upload source package
+        # Don't use v4 unless https://github.com/actions/download-artifact/issues/249 solved.
+        uses: actions/upload-artifact@v3
+        with:
+          name: per-action-source-${{ inputs.release }}
+          path: |
+            ${{ steps.extract.outputs.output_path }}
+          if-no-files-found: error
