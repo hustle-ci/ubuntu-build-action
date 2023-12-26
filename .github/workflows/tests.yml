@@ -1,0 +1,48 @@
+# Copyright 2023 You-Sheng Yang and others
+# SPDX-License-Identifier: FSFAP
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved. This file is offered as-is, without any warranty.
+---
+name: 'tests'
+on:
+  workflow_call:
+    inputs:
+      releases:
+        type: string
+        required: true
+      default_release:
+        type: string
+        required: true
+
+jobs:
+  test-per-release:
+    strategy:
+      matrix:
+        include: ${{ fromJSON(inputs.releases) }}
+    uses: ./.github/workflows/test-per-release.yml
+    with:
+      release: ${{ matrix.release }}
+      default_release: ${{ inputs.default_release }}
+
+  test-full-action:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: ${{ fromJSON(inputs.releases) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/clone-test-project
+        id: clone
+        with:
+          release: ${{ matrix.release }}
+
+      - name: Test top action
+        id: top-action
+        uses: ./
+        with:
+          base_image: ${{ format('ghcr.io/{0}/staging:{1}-base-{2}', github.repository_owner, github.run_id, matrix.release) }}
+          source_path: ${{ steps.clone.outputs.source_path }}
+          output_path: ${{ hashFiles('action.yml', 'actions/*/action.yml') }}
+

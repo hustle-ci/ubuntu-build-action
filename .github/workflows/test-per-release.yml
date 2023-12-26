@@ -1,0 +1,40 @@
+# Copyright 2023 You-Sheng Yang and others
+# SPDX-License-Identifier: FSFAP
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved. This file is offered as-is, without any warranty.
+---
+name: 'test per release'
+on:
+  workflow_call:
+    inputs:
+      release:
+        description: 'Distribution release name, e.g. unstable for debian.'
+        type: string
+        default: 'unstable'
+      default_release:
+        description: >-
+          The default release to be used for actions with no release variants.
+          Empty string as an alias to `inputs.release`.
+        type: string
+        default: ''
+
+jobs:
+  dummy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/clone-test-project
+        id: clone
+        with:
+          release: ${{ inputs.release }}
+
+      - name: Dummy action
+        id: dummy
+        uses: ./actions/dummy
+        with:
+          image: ${{ format('ghcr.io/{0}/staging:{1}-base-{2}', github.repository_owner, github.run_id, inputs.release) }}
+          source_path: ${{ steps.clone.outputs.source_path }}
+          output_path: ${{ hashFiles('action.yml', 'actions/*/action.yml') }}
+

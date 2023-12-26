@@ -1,0 +1,56 @@
+# Copyright 2023 You-Sheng Yang and others
+# SPDX-License-Identifier: FSFAP
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved. This file is offered as-is, without any warranty.
+---
+name: 'clone-test-project'
+description: 'Clone Debian grep package for CI tests'
+author: 'vicamo'
+
+inputs:
+  release:
+    description: >-
+      Specify the target release to run the workflow. By default, everything
+      will run on the 'unstable' suite. The following releases are currently
+      supported:
+
+      * experimental
+
+      * unstable (default)
+
+      * testing
+
+      * stable
+    default: 'unstable'
+
+outputs:
+  source_path:
+    description: Full path to the cloned testing project.
+    value: ${{ steps.clone.outputs.source_path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Clone debian grep package
+      id: clone
+      shell: bash
+      run: |
+        case "${{ inputs.release }}" in
+          experimental) branch=debian/experimental;;
+          unstable) branch=debian/master;;
+          testing|stable)
+            codename="$(wget -q -O - "https://deb.debian.org/debian/dists/${{ inputs.release }}/Release" | \
+                awk '/^Codename: / { print $2 }')"
+            branch="debian/${codename}"
+            ;;
+          *)
+            echo "Unsupported release: ${{ inputs.release }}" >&2
+            exit 1
+        esac
+
+        # Fallback to debian/master if per release branch is not created
+        git clone -b "${branch}" https://salsa.debian.org/debian/grep || \
+            git clone -b debian/master https://salsa.debian.org/debian/grep
+
+        echo "source_path=grep" >> "${GITHUB_OUTPUT}"

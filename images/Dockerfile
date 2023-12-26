@@ -27,10 +27,14 @@ RUN set -eux; \
 		apt \
 		ca-certificates \
 		eatmydata \
+		sudo \
 	; \
 	apt-get autoremove --purge -y; \
 	apt-get clean; \
 	rm -rf /var/lib/apt
+
+COPY scripts/lib.sh /usr/local/bin/lib.sh
+COPY scripts/dummy.sh /usr/local/bin/dummy.sh
 
 ################################################################################
 

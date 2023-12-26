@@ -1,0 +1,45 @@
+# Copyright 2023 You-Sheng Yang and others
+# SPDX-License-Identifier: FSFAP
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved. This file is offered as-is, without any warranty.
+---
+name: 'debian-build-action'
+description: 'Debian package build action'
+author: 'vicamo'
+
+inputs:
+  base_image:
+    description: base docker image
+    default: ''
+  source_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where source root is stored. Default is
+      `GITHUB_WORKSPACE`.
+    default: ''
+  output_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where built artifacts should be stored.
+      Default is `source_path`/debian/output.
+    default: ''
+
+outputs:
+  source_path:
+    description: >-
+      The actual `source_path` used.
+    value: ${{ steps.dummy.outputs.source_path }}
+  output_path:
+    description: >-
+      The actual `output_path` used.
+    value: ${{ steps.dummy.outputs.output_path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Dummy Step'
+      id: dummy
+      uses: ./actions/dummy
+      with:
+        image: ${{ inputs.base_image }}
+        source_path: ${{ inputs.source_path }}
+        output_path: ${{ inputs.output_path }}

@@ -55,6 +55,7 @@ jobs:
       image-version: ${{ steps.image-version.outputs.image-version }}
       releases: ${{ steps.release.outputs.releases }}
       default_index: ${{ steps.release.outputs.default_index }}
+      default_release: ${{ steps.release.outputs.default_release }}
     env:
       DEFAULT_RELEASE: 'unstable'
       IMAGE_VERSION: '0.0'
@@ -115,6 +116,7 @@ jobs:
           echo "::group::Outputs"
           echo "releases=${releases_json}" | tee -a "${GITHUB_OUTPUT}"
           echo "default_index=${default_index}" | tee -a "${GITHUB_OUTPUT}"
+          echo "default_release=${DEFAULT_RELEASE}" | tee -a "${GITHUB_OUTPUT}"
           echo "::endgroup::"
 
   base-images:
@@ -169,11 +171,20 @@ jobs:
           tag_prefix: ${{ github.run_id }}-
           ghcr_password: ${{ secrets.GITHUB_TOKEN }}
 
-  publish-staging-tags:
+  tests:
     needs:
       - generate-matrix
       - base-images
       - latest-amd64-images
+    uses: ./.github/workflows/tests.yml
+    with:
+      releases: ${{ needs.generate-matrix.outputs.releases }}
+      default_release: ${{ needs.generate-matrix.outputs.default_release }}
+
+  publish-staging-tags:
+    needs:
+      - generate-matrix
+      - tests
     strategy:
       matrix:
         include: ${{ fromJSON(needs.generate-matrix.outputs.releases) }}
