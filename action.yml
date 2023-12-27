@@ -21,6 +21,9 @@ inputs:
   lintian_image:
     description: lintian docker image
     default: ''
+  blhc_image:
+    description: blhc docker image
+    default: ''
   release:
     description: >-
       Specify the target release to run the workflow. By default, everything
@@ -86,6 +89,9 @@ inputs:
   lintian_args:
     description: >-
       Arguments appended to lintian's generated arguments.
+    default: ''
+  blhc_args:
+    description: 'Additional arguments to `blhc`.'
     default: ''
 
 outputs:
@@ -169,3 +175,10 @@ runs:
         show_overrides: ${{ inputs.lintian_show_overrides }}
         suppress_tags: ${{ inputs.lintian_suppress_tags }}
         args: ${{ inputs.lintian_args }}
+    - name: blhc test
+      uses: ./actions/blhc
+      with:
+        image: ${{ inputs.blhc_image }}
+        source_path: ${{ steps.build.outputs.output_path }}
+        output_path: ${{ steps.build.outputs.output_path }}
+        args: ${{ inputs.blhc_args }}

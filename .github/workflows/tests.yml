@@ -47,6 +47,7 @@ jobs:
           gbp_image: ${{ format('ghcr.io/{0}/staging:{1}-gbp-{2}', github.repository_owner, github.run_id, inputs.default_release) }}
           generic_tests_image: ${{ format('ghcr.io/{0}/staging:{1}-generic-tests-{2}', github.repository_owner, github.run_id, matrix.release) }}
           lintian_image: ${{ format('ghcr.io/{0}/staging:{1}-lintian-{2}', github.repository_owner, github.run_id, matrix.release) }}
+          blhc_image: ${{ format('ghcr.io/{0}/staging:{1}-blhc-{2}', github.repository_owner, github.run_id, inputs.default_release) }}
           release: ${{ matrix.release }}
           source_path: ${{ steps.clone.outputs.source_path }}
           output_path: ${{ hashFiles('action.yml', 'actions/*/action.yml') }}

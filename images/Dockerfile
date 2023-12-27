@@ -139,3 +139,5 @@ RUN set -eux; \
 	; \
 	rm -rf /var/lib/apt; \
 	:
+
+COPY scripts/blhc.sh /usr/local/bin/blhc.sh

@@ -1,0 +1,42 @@
+# Copyright 2023 You-Sheng Yang and others
+# SPDX-License-Identifier: FSFAP
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved. This file is offered as-is, without any warranty.
+---
+name: 'blhc-action'
+description: 'Debian package blhc action'
+author: 'vicamo'
+
+inputs:
+  image:
+    description: Target docker image to launch.
+    default: 'ghcr.io/hustle-ci/blhc:latest'
+  source_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where debian build file is stored.
+      Default is `GITHUB_WORKSPACE`.
+    default: ''
+  output_path:
+    description: >-
+      Relative path to GITHUB_WORKSPACE where built artifacts should be stored.
+      Default is `source_path`/debian/output.
+    default: ''
+  args:
+    description: 'Additional arguments to `blhc`.'
+    default: ''
+
+outputs:
+  output_path:
+    description: >-
+      The actual `output_path` used.
+
+runs:
+  using: 'docker'
+  image: 'ghcr.io/hustle-ci/launcher:latest'
+  args:
+    - '/start.sh'
+    - '--entrypoint'
+    - '/usr/local/bin/blhc.sh'
+    - '--'
+    - ${{ inputs.image }}
