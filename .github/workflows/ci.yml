@@ -143,6 +143,9 @@ jobs:
           releases_json='${{ steps.release.outputs.releases }}'
           output_json="$(echo "${targets_json}" | jq -c -M "${releases_json} as \$releases | [.[] as \$in | (\$releases[] | . + {\"target\": \$in})]")"
 
+          # https://github.com/hustle-ci/debian-build-action/issues/2
+          output_json="$(echo "${output_json}" | jq -c -M "del(.[] | select(.release == \"experimental\" and .target == \"lintian\"))")"
+
           echo "::group::Outputs"
           echo "releases-targets=${output_json}" | tee -a "${GITHUB_OUTPUT}"
           echo "::endgroup::"

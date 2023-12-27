@@ -157,6 +157,8 @@ runs:
         output_path: ${{ steps.build.outputs.output_path }}
     - name: lintian test
       id: lintian
+      # https://github.com/hustle-ci/debian-build-action/issues/2
+      if: ${{ inputs.release != 'experimental' }}
       uses: ./actions/lintian
       with:
         image: ${{ inputs.lintian_image }}

@@ -54,6 +54,11 @@ jobs:
           fi
           targets_json="$(jq -c -M -n '$ARGS.positional' --args "${targets[@]}")"
 
+          # https://github.com/hustle-ci/debian-build-action/issues/2
+          if [ ${{ inputs.release }} = 'experimental' ]; then
+            targets_json="$(echo "${targets_json}" | jq -c -M "del(.[] | select(. == \"lintian\"))")"
+          fi
+
           echo "::group::Outputs"
           { \
             echo "patterns<<EOF"; \
