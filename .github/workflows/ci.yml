@@ -183,6 +183,7 @@ jobs:
     strategy:
       matrix:
         target:
+          - 'blhc'
           - 'gbp'
         include:
           - ${{ fromJSON(needs.generate-matrix.outputs.releases)[fromJSON(needs.generate-matrix.outputs.default_index)] }}

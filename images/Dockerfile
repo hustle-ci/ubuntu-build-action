@@ -126,3 +126,16 @@ RUN set -eux; \
 
 COPY scripts/lintian2junit.py /usr/local/bin/lintian2junit.py
 COPY scripts/lintian.sh /usr/local/bin/lintian.sh
+
+################################################################################
+
+FROM base AS blhc
+
+RUN set -eux; \
+	apt-get update --quiet; \
+	apt-get upgrade -y; \
+	eatmydata apt-get install --no-install-recommends -y \
+		blhc \
+	; \
+	rm -rf /var/lib/apt; \
+	:
