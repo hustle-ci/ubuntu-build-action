@@ -156,3 +156,5 @@ RUN set -eux; \
 	; \
 	rm -rf /var/lib/apt; \
 	:
+
+COPY scripts/autopkgtest.sh /usr/local/bin/autopkgtest.sh

@@ -24,6 +24,9 @@ inputs:
   blhc_image:
     description: blhc docker image
     default: ''
+  autopkgtest_image:
+    description: autopkgtest docker image
+    default: ''
   release:
     description: >-
       Specify the target release to run the workflow. By default, everything
@@ -92,6 +95,9 @@ inputs:
     default: ''
   blhc_args:
     description: 'Additional arguments to `blhc`.'
+    default: ''
+  autopkgtest_args:
+    description: 'Additional arguments to `autopkgtest`.'
     default: ''
 
 outputs:
@@ -182,3 +188,12 @@ runs:
         source_path: ${{ steps.build.outputs.output_path }}
         output_path: ${{ steps.build.outputs.output_path }}
         args: ${{ inputs.blhc_args }}
+    - name: autopkgtest test
+      uses: ./actions/autopkgtest
+      with:
+        image: ${{ inputs.autopkgtest_image }}
+        release: ${{ inputs.release }}
+        source_path: ${{ steps.build.outputs.output_path }}
+        output_path: ${{ steps.build.outputs.output_path }}
+        args: ${{ inputs.autopkgtest_args }}
+        testbed: ${{ inputs.base_image }}

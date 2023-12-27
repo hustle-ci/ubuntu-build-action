@@ -285,3 +285,26 @@ jobs:
         uses: ./actions/blhc
         with:
           image: ${{ format('ghcr.io/{0}/staging:{1}-blhc-{2}', github.repository_owner, github.run_id, inputs.default_release) }}
+
+  autopkgtest:
+    needs:
+      - full-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download source tarball
+        uses: actions/download-artifact@v3
+        with:
+          name: per-action-source-${{ inputs.release }}
+      - name: Download binary tarball
+        uses: actions/download-artifact@v3
+        with:
+          name: per-action-binary-${{ inputs.release }}-amd64-amd64
+
+      - name: Autopkgtest
+        uses: ./actions/autopkgtest
+        with:
+          image: ${{ format('ghcr.io/{0}/staging:{1}-autopkgtest-{2}', github.repository_owner, github.run_id, inputs.default_release) }}
+          testbed: ${{ format('ghcr.io/{0}/staging:{1}-base-{2}', github.repository_owner, github.run_id, inputs.release) }}
