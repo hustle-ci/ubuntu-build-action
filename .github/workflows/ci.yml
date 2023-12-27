@@ -183,6 +183,7 @@ jobs:
     strategy:
       matrix:
         target:
+          - 'autopkgtest'
           - 'blhc'
           - 'gbp'
         include:

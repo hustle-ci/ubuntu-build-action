@@ -141,3 +141,18 @@ RUN set -eux; \
 	:
 
 COPY scripts/blhc.sh /usr/local/bin/blhc.sh
+
+################################################################################
+
+FROM base AS autopkgtest
+
+RUN set -eux; \
+	apt-get update --quiet; \
+	apt-get upgrade -y; \
+	eatmydata apt-get install --no-install-recommends -y \
+		autodep8 \
+		autopkgtest \
+		docker.io \
+	; \
+	rm -rf /var/lib/apt; \
+	:
