@@ -9,6 +9,9 @@ on:
   push:
     branches:
       - main
+      - 'releases/v*'
+    tags:
+      - 'v*'
     paths-ignore:
       - LICENSE
       - 'README.*'
@@ -124,9 +127,27 @@ jobs:
       image_version: ${{ needs.generate-matrix.outputs.image-version }}
       tag_prefix: ${{ github.run_id }}-
 
+  publish-staging-tags:
+    needs:
+      - generate-matrix
+      - base-images
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.generate-matrix.outputs.releases) }}
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/publish-tags.yml
+    with:
+      vendor: ${{ matrix.vendor }}
+      release: ${{ matrix.release }}
+      aliases: ${{ matrix.aliases }}
+      image-version: ${{ needs.generate-matrix.outputs.image-version }}
+      dry-run: ${{ github.event_name == 'pull_request' }}
+
   prune-staging-tags:
     needs:
-      - base-images
+      - publish-staging-tags
     if: ${{ always() }}
     permissions:
       contents: read

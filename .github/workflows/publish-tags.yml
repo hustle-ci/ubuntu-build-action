@@ -1,0 +1,142 @@
+# Copyright 2023 You-Sheng Yang and others
+# SPDX-License-Identifier: FSFAP
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved. This file is offered as-is, without any warranty.
+---
+name: 'publish tags'
+on:
+  workflow_call:
+    inputs:
+      vendor:
+        description: 'Distribution vendor. Currently supports only debian.'
+        type: string
+        default: 'debian'
+      release:
+        description: 'Distribution release name, e.g. unstable for debian.'
+        type: string
+        required: true
+      aliases:
+        description: 'Space-separated release alias names.'
+        type: string
+        required: true
+      image-version:
+        type: string
+        required: true
+      dry-run:
+        type: boolean
+        default: true
+
+jobs:
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      patterns: ${{ steps.transform.outputs.patterns }}
+      targets: ${{ steps.transform.outputs.targets }}
+    steps:
+      - name: Install prerequisites
+        run: |
+          echo "::group::Apt"
+          sudo apt-get update --quiet
+          sudo apt-get install --no-install-recommends --yes jq
+          echo "::endgroup::"
+
+          echo "::group::jq version"
+          jq --version
+          echo "::endgroup::"
+
+      - name: Transform meta tags patterns
+        id: transform
+        run: |
+          targets=(base)
+          targets_json="$(jq -c -M -n '$ARGS.positional' --args "${targets[@]}")"
+
+          echo "::group::Outputs"
+          { \
+            echo "patterns<<EOF"; \
+            for alias in ${{ inputs.aliases }}; do \
+              echo "type=semver,pattern=${alias}-{{version}}"; \
+              echo "type=semver,pattern=${alias}-{{major}},enable=${{ startsWith(github.ref, 'refs/tags/v0.') && 'false' || 'true' }}"; \
+              echo "type=raw,value=${alias},enable={{is_default_branch}}"; \
+              echo "type=raw,value=${alias}-dry-run,enable=${{ inputs.dry-run && 'true' || 'false' }}"; \
+            done; \
+            echo "EOF"; \
+            echo "targets=${targets_json}"; \
+          } | tee -a "${GITHUB_OUTPUT}"
+          echo "::endgroup::"
+
+  push-tags:
+    runs-on: ubuntu-latest
+    needs:
+      - generate-matrix
+    strategy:
+      matrix:
+        target: ${{ fromJSON(needs.generate-matrix.outputs.targets) }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: v0.12.0
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          labels: |
+            org.opencontainers.image.description=${{ matrix.target }} image for ${{ inputs.vendor }}:${{ inputs.release }}
+            org.opencontainers.image.licenses=FSFAP
+            org.opencontainers.image.vendor=${{ github.repository_owner }}
+            org.opencontainers.image.version=${{ inputs.image-version }}
+          annotations: |
+            org.opencontainers.image.description=${{ matrix.target }} image for ${{ inputs.vendor }}:${{ inputs.release }}
+            org.opencontainers.image.licenses=FSFAP
+            org.opencontainers.image.version=${{ inputs.image-version }}
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}
+          flavor: |
+            latest=false
+          tags: ${{ needs.generate-matrix.outputs.patterns }}
+        env:
+          # "manifest" annotations are not supported by buildx yet
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index
+
+      - name: Create manifest list and push
+        shell: bash
+        env:
+          DRY_RUN_ARG: ${{ inputs.dry-run && '--dry-run' || '' }}
+        run: |
+          tags=()
+          while read -r line; do \
+            tags+=(--tag "$line"); \
+          done <<<"${DOCKER_METADATA_OUTPUT_TAGS}"
+
+          annotations=()
+          while read -r line; do \
+            annotations+=(--annotation "${line}"); \
+          done <<<"${DOCKER_METADATA_OUTPUT_ANNOTATIONS}"
+
+          staging_img=ghcr.io/${{ github.repository_owner }}/staging:${{ github.run_id }}-${{ matrix.target }}-${{ inputs.release }}
+          digests="$(docker buildx imagetools inspect --format '{{range .Manifest.Manifests}}{{println .Digest}}{{end}}' "${staging_img}")"
+          echo "::group::Digests"
+          echo "${digests}"
+          echo "::endgroup::"
+
+          echo "::group::Create image from ${staging_img}"
+          echo "${digests}" | sed "s,^,${staging_img}@," | \
+              xargs docker buildx imagetools create ${DRY_RUN_ARG} "${tags[@]}" "${annotations[@]}"
+          echo "::endgroup::"
+
+          if [ -z "${DRY_RUN_ARG}" ]; then
+            built_image=ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ inputs.release }}
+            echo "::group::Inspect built image ${built_image}"
+            docker buildx imagetools inspect "${built_image}"
+            echo "::endgroup::"
+          fi
