@@ -14,6 +14,14 @@ on:
           '__all__' to prune everything.
         type: string
         required: true
+  workflow_dispatch:
+    inputs:
+      prune-tags-regexes:
+        description: >-
+          `prune-tags-regexes` passed to vlaurin/action-ghcr-prune action. 
+          '__all__' to prune everything.
+        type: string
+        required: true
 
 jobs:
 
