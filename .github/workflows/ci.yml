@@ -113,6 +113,7 @@ jobs:
           echo "::endgroup::"
 
   base-images:
+    runs-on: ubuntu-latest
     needs:
       - generate-matrix
       - static-checks
@@ -122,14 +123,19 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: ./.github/workflows/build-image.yml
-    with:
-      vendor: ${{ matrix.vendor }}
-      release: ${{ matrix.release }}
-      architectures: ${{ matrix.architectures }}
-      target: 'base'
-      image_version: ${{ needs.generate-matrix.outputs.image-version }}
-      tag_prefix: ${{ github.run_id }}-
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/build-image
+        with:
+          vendor: ${{ matrix.vendor }}
+          release: ${{ matrix.release }}
+          architectures: ${{ matrix.architectures }}
+          target: 'base'
+          image_version: ${{ needs.generate-matrix.outputs.image-version }}
+          tag_prefix: ${{ github.run_id }}-
+          ghcr_password: ${{ secrets.GITHUB_TOKEN }}
 
   publish-staging-tags:
     needs:
