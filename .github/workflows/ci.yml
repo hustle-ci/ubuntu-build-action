@@ -146,6 +146,8 @@ jobs:
               [ "${arch}" != "mipsel" ] || continue
               # https://github.com/hustle-ci/ubuntu-build-action/issues/2
               [ "${arch}" != "powerpc" ] || continue
+              # https://github.com/hustle-ci/ubuntu-build-action/issues/4
+              [ "${arch}" != "riscv64" ] || continue
 
               archs+=("${arch}")
             done
