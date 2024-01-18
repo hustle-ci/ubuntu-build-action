@@ -119,7 +119,13 @@ jobs:
             obj_json="$(echo "${obj_json}" | jq -c -M ".architectures=\"${archs[*]}\"")"
 
             aliases=("${release}")
-            aliases+=("$(echo "${content}" | awk '/^Codename:/ {print $2}')")
+
+            codename="$(echo "${content}" | awk '/^Codename:/ {print $2}')"
+            [ "${codename}" = "${release}" ] || aliases+=("${codename}")
+
+            version="$(echo "${content}" | awk '/^Version:/ {print $2}')"
+            [ -z "${version}" ] || aliases+=("${version}")
+
             [ "${release}" != "${DEFAULT_RELEASE}" ] || aliases+=(latest)
             obj_json="$(echo "${obj_json}" | jq -c -M ".aliases=\"${aliases[*]}\"")"
 
