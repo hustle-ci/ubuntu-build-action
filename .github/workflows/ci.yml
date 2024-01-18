@@ -124,7 +124,8 @@ jobs:
             content="$(wget -q -O - "https://deb.debian.org/debian/dists/${release}/Release" | grep -v '^ ')"
 
             archs=()
-            for arch in $(echo "${content}" | awk '/^Architectures:/ {$1=""; $2=""; $0=$0; print $0}'); do
+            for arch in $(echo "${content}" | awk '/^Architectures:/ {$1=""; $0=$0; print $0}'); do
+              [ "${arch}" != "all" ] || continue
               # https://github.com/hustle-ci/debian-build-action/issues/5
               [ "${arch}" != "mipsel" ] || continue
 
