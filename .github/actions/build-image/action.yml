@@ -10,11 +10,11 @@ author: 'vicamo'
 
 inputs:
   vendor:
-    description: 'Distribution vendor. Currently supports only debian.'
-    default: 'debian'
+    description: 'Distribution vendor.'
+    required: true
   release:
-    description: 'Distribution release name, e.g. unstable for debian.'
-    default: 'unstable'
+    description: 'Distribution release name.'
+    required: true
   architectures:
     description: 'Space-separated debian architecture names.'
     default: 'amd64'

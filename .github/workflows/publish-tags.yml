@@ -9,9 +9,9 @@ on:
   workflow_call:
     inputs:
       vendor:
-        description: 'Distribution vendor. Currently supports only debian.'
+        description: 'Distribution vendor.'
         type: string
-        default: 'debian'
+        required: true
       release:
         description: 'Distribution release name, e.g. unstable for debian.'
         type: string
