@@ -72,9 +72,6 @@ jobs:
       default_index: ${{ steps.release.outputs.default_index }}
       default_release: ${{ steps.release.outputs.default_release }}
       releases-targets: ${{ steps.release-target.outputs.releases-targets }}
-    env:
-      DEFAULT_RELEASE: 'unstable'
-      IMAGE_VERSION: '0.0'
     steps:
       - name: Install prerequisites
         run: |
@@ -89,6 +86,8 @@ jobs:
 
       - name: Checking image version
         id: image-version
+        env:
+          IMAGE_VERSION: '0.0'
         run: |
           version="${IMAGE_VERSION}"
           case "${{ format('{0}:{1}', github.event_name, github.ref) }}" in
@@ -102,6 +101,8 @@ jobs:
 
       - name: Generate supported matrix
         id: release
+        env:
+          DEFAULT_RELEASE: 'unstable'
         run: |
           releases_json="[]"
           for release in experimental unstable testing stable; do
