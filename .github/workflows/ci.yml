@@ -140,6 +140,8 @@ jobs:
             archs=()
             for arch in $(echo "${content}" | awk '/^Architectures:/ {$1=""; $0=$0; print $0}'); do
               [ "${arch}" != "all" ] || continue
+              # https://github.com/hustle-ci/ubuntu-build-action/issues/3
+              [ "${arch}" != "i386" ] || continue
               # https://github.com/hustle-ci/debian-build-action/issues/5
               [ "${arch}" != "mipsel" ] || continue
               # https://github.com/hustle-ci/ubuntu-build-action/issues/2
