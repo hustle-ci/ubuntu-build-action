@@ -22,6 +22,7 @@ jobs:
         include: ${{ fromJSON(inputs.releases) }}
     uses: ./.github/workflows/test-per-release.yml
     with:
+      vendor: ${{ matrix.vendor }}
       release: ${{ matrix.release }}
       default_release: ${{ inputs.default_release }}
       architectures: ${{ matrix.architectures }}
@@ -37,6 +38,7 @@ jobs:
       - uses: ./.github/actions/clone-test-project
         id: clone
         with:
+          vendor: ${{ matrix.vendor }}
           release: ${{ matrix.release }}
 
       - name: Test top action

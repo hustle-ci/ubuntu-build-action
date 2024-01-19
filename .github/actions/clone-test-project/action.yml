@@ -9,20 +9,14 @@ description: 'Clone Debian grep package for CI tests'
 author: 'vicamo'
 
 inputs:
+  vendor:
+    description: >-
+      Specify the distro vendor for the testing project to be cloned.
+    required: true
   release:
     description: >-
-      Specify the target release to run the workflow. By default, everything
-      will run on the 'unstable' suite. The following releases are currently
-      supported:
-
-      * experimental
-
-      * unstable (default)
-
-      * testing
-
-      * stable
-    default: 'unstable'
+      Specify the release branch for the testing project to be cloned.
+    required: true
 
 outputs:
   source_path:

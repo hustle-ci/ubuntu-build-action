@@ -8,16 +8,19 @@ name: 'test per release'
 on:
   workflow_call:
     inputs:
+      vendor:
+        description: 'Distribution vendor.'
+        type: string
+        required: true
       release:
         description: 'Distribution release name, e.g. unstable for debian.'
         type: string
-        default: 'unstable'
+        required: true
       default_release:
         description: >-
           The default release to be used for actions with no release variants.
-          Empty string as an alias to `inputs.release`.
         type: string
-        default: ''
+        required: true
       architectures:
         description: 'Space-separated debian architecture names.'
         type: string
@@ -35,6 +38,7 @@ jobs:
       - uses: ./.github/actions/clone-test-project
         id: clone
         with:
+          vendor: ${{ inputs.vendor }}
           release: ${{ inputs.release }}
 
       - name: Extract source package

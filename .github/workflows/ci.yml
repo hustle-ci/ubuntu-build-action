@@ -72,9 +72,6 @@ jobs:
       default_index: ${{ steps.release.outputs.default_index }}
       default_release: ${{ steps.release.outputs.default_release }}
       releases-targets: ${{ steps.release-target.outputs.releases-targets }}
-    env:
-      DEFAULT_RELEASE: 'unstable'
-      IMAGE_VERSION: '0.0'
     steps:
       - name: Install prerequisites
         run: |
@@ -89,6 +86,8 @@ jobs:
 
       - name: Checking image version
         id: image-version
+        env:
+          IMAGE_VERSION: '0.0'
         run: |
           version="${IMAGE_VERSION}"
           case "${{ format('{0}:{1}', github.event_name, github.ref) }}" in
@@ -100,17 +99,33 @@ jobs:
           echo "image-version=${version}" | tee -a "${GITHUB_OUTPUT}"
           echo "::endgroup::"
 
+      - name: Enumerate vendor releases
+        id: vendor-releases
+        run: |
+          echo "::group::Outputs"
+          { \
+            echo "releases=debian:experimental debian:unstable debian:testing debian:stable"; \
+            echo "default_release=unstable"; \
+          } | tee -a "${GITHUB_OUTPUT}"
+          echo "::endgroup::"
+
       - name: Generate supported matrix
         id: release
+        env:
+          DEFAULT_RELEASE: ${{ steps.vendor-releases.outputs.default_release }}
+          VENDOR_RELEASES: ${{ steps.vendor-releases.outputs.releases }}
         run: |
           releases_json="[]"
-          for release in experimental unstable testing stable; do
-            obj_json="{\"vendor\": \"debian\", \"release\": \"${release}\"}"
+          for vendor_release in ${VENDOR_RELEASES}; do
+            vendor="${vendor_release%:*}"
+            release="${vendor_release#*:}"
+            obj_json="{\"vendor\": \"${vendor}\", \"release\": \"${release}\"}"
 
             content="$(wget -q -O - "https://deb.debian.org/debian/dists/${release}/Release" | grep -v '^ ')"
 
             archs=()
-            for arch in $(echo "${content}" | awk '/^Architectures:/ {$1=""; $2=""; $0=$0; print $0}'); do
+            for arch in $(echo "${content}" | awk '/^Architectures:/ {$1=""; $0=$0; print $0}'); do
+              [ "${arch}" != "all" ] || continue
               # https://github.com/hustle-ci/debian-build-action/issues/5
               [ "${arch}" != "mipsel" ] || continue
 
@@ -126,9 +141,11 @@ jobs:
             version="$(echo "${content}" | awk '/^Version:/ {print $2}')"
             [ -z "${version}" ] || aliases+=("${version}")
 
-            [ "${release}" != "${DEFAULT_RELEASE}" ] || aliases+=(latest)
-            obj_json="$(echo "${obj_json}" | jq -c -M ".aliases=\"${aliases[*]}\"")"
+            if [ "${release}" = "${DEFAULT_RELEASE}" ]; then
+              aliases+=(latest)
+            fi
 
+            obj_json="$(echo "${obj_json}" | jq -c -M ".aliases=\"${aliases[*]}\"")"
             releases_json="$(echo "${releases_json}" | jq -c -M ". + [${obj_json}]")"
           done
 
