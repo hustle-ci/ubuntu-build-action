@@ -110,6 +110,6 @@ echo "::group::Outputs"
   echo "output_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}")"; \
   echo "setup_gitattributes=${INPUT_SETUP_GITATTRIBUTES}"; \
   echo "built_source_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}/source")"; \
-  echo "built_origtar=$(find . -maxdepth 1 -type f -name \*.orig.tar.\*.asc -printf %f | sed 's,\.asc$,,')"; \
+  echo "built_origtar=$(find . -maxdepth 1 -type f -name \*.orig.tar.\* ! -name \*.asc -printf %f)"; \
 } | tee -a "${GITHUB_OUTPUT}"
 echo "::endgroup::"
