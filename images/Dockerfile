@@ -121,6 +121,8 @@ RUN set -eux; \
 			python3-junit.xml \
 		; \
 	fi; \
+	which realpath || \
+		eatmydata apt-get install --no-install-recommends -y realpath; \
 	rm -rf /var/lib/apt; \
 	:
 
