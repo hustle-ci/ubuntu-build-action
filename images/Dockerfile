@@ -104,8 +104,6 @@ COPY scripts/missing-breaks.sh /usr/local/bin/missing-breaks.sh
 FROM base AS lintian
 
 RUN set -eux; \
-	printf 'Package: *\nPin: release a=%s\nPin-Priority: 900\n' "$RELEASE" \
-		| tee /etc/apt/preferences.d/salsa-ci; \
 	apt-get update --quiet; \
 	apt-get upgrade -y; \
 	eatmydata apt-get install --no-install-recommends -y \
