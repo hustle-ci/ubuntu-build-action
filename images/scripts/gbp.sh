@@ -126,7 +126,9 @@ PATH="/usr/lib/ccache/:${PATH}"
 export CCACHE_DIR="${INPUT_OUTPUT_PATH}/.ccache"
 SUDO mkdir -vp "${CCACHE_DIR}"
 SUDO ccache -z
-SUDO ccache -s -v
+ccache_verbose_arg=
+ccache -v 2>/dev/null && ccache_verbose_arg=-v
+SUDO ccache -s ${ccache_verbose_arg}
 echo "::endgroup::"
 
 # Define buildlog filename
@@ -163,7 +165,7 @@ cd "${INPUT_OUTPUT_PATH}" || exit 1
 
 # Print ccache stats on job log
 echo "::group::ccache statistics after build"
-ccache -s -v
+SUDO ccache -s ${ccache_verbose_arg}
 echo "::endgroup::"
 
 # Print size of artifacts after build
