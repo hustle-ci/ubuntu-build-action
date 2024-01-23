@@ -32,6 +32,7 @@ jobs:
     strategy:
       matrix:
         include: ${{ fromJSON(inputs.releases) }}
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
