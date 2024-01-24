@@ -145,8 +145,8 @@ SUDO ccache -s ${ccache_verbose_arg}
 echo "::endgroup::"
 
 # Define buildlog filename
-BUILD_LOGFILE_SOURCE="$(dpkg-parsechangelog -S Source)"
-BUILD_LOGFILE_VERSION="$(dpkg-parsechangelog -S Version)"
+BUILD_LOGFILE_SOURCE="$(dpkg-parsechangelog --show-field Source)"
+BUILD_LOGFILE_VERSION="$(dpkg-parsechangelog --show-field Version)"
 BUILD_LOGFILE_VERSION="${BUILD_LOGFILE_VERSION#*:}"
 BUILD_LOGFILE_ARCH="${INPUT_HOST_ARCH}"
 BUILD_LOGFILE="${INPUT_OUTPUT_PATH}/${BUILD_LOGFILE_SOURCE}_${BUILD_LOGFILE_VERSION}_${BUILD_LOGFILE_ARCH}.build"
