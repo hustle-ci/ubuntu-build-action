@@ -93,10 +93,23 @@ eatmydata apt-get install --no-install-recommends -y \
 
 # in case we are cross-building, install some more dependencies
 # see #815172 why we need libc-dev and libstdc++-dev
-test -z "${CROSS_COMPILING}" || eatmydata apt-get satisfy --no-install-recommends -y \
-  "libc-dev:${INPUT_HOST_ARCH}" \
-  "libstdc++-dev:${INPUT_HOST_ARCH}" \
-  "crossbuild-essential-${INPUT_HOST_ARCH}"
+if [ -n "${CROSS_COMPILING}" ]; then
+  if apt-get satisfy --simulate base-files; then
+    eatmydata apt-get satisfy --no-install-recommends -y \
+      "libc-dev:${INPUT_HOST_ARCH}" \
+      "libstdc++-dev:${INPUT_HOST_ARCH}" \
+      "crossbuild-essential-${INPUT_HOST_ARCH}"
+  else
+    # `apt-get satisfy` not supported, and `apt-get install` does not accept
+    # pure virtual package libstdc++-dev, so we need to find out the package
+    # name of the latest version.
+    libstdcpp_dev="$(apt-cache search --names-only '^libstdc\+\+-[1-9\.]+-dev$' 2>/dev/null | sort -V | tail -1 | awk '{print $1}')"
+    eatmydata apt-get install --no-install-recommends -y \
+      "libc-dev:${INPUT_HOST_ARCH}" \
+      "${libstdcpp_dev}:${INPUT_HOST_ARCH}" \
+      "crossbuild-essential-${INPUT_HOST_ARCH}"
+  fi
+fi
 
 # when cross-compiling, add 'nocheck' to the DEB_BUILD_OPTIONS
 test -z "${CROSS_COMPILING}" || export DEB_BUILD_OPTIONS="nocheck ${DEB_BUILD_OPTIONS:-}"
