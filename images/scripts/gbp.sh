@@ -128,8 +128,9 @@ aptopts=(--no-install-recommends -y)
 test "${INPUT_BUILD_TYPE}" != "any" || aptopts+=(--arch-only)
 test "${INPUT_BUILD_TYPE}" != "all" || aptopts+=(--indep-only)
 test -z "${CROSS_COMPILING}" || aptopts+=(--host-architecture "${INPUT_HOST_ARCH}" "-Pcross,nocheck")
+aptopts+=("$(dpkg-parsechangelog --show-field Source)")
 
-eatmydata apt-get build-dep "${aptopts[@]}" .
+eatmydata apt-get build-dep "${aptopts[@]}"
 echo "::endgroup::"
 
 # If not disabled, bump package version
