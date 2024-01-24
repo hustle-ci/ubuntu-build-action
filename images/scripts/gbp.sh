@@ -152,7 +152,17 @@ BUILD_LOGFILE_ARCH="${INPUT_HOST_ARCH}"
 BUILD_LOGFILE="${INPUT_OUTPUT_PATH}/${BUILD_LOGFILE_SOURCE}_${BUILD_LOGFILE_VERSION}_${BUILD_LOGFILE_ARCH}.build"
 
 # Define build command
-BUILD_COMMAND=(eatmydata dpkg-buildpackage "--build=${INPUT_BUILD_TYPE}")
+BUILD_COMMAND=(eatmydata dpkg-buildpackage)
+# --build=foo may not be supported by older releases, so use short flags instead.
+case "${INPUT_BUILD_TYPE}" in
+  all) BUILD_COMMAND+=("-A") ;;
+  any) BUILD_COMMAND+=("-B") ;;
+  binary) BUILD_COMMAND+=("-b") ;;
+  full) BUILD_COMMAND+=("-F") ;;
+  source) BUILD_COMMAND+=("-S") ;;
+  "source,all") BUILD_COMMAND+=("-g") ;;
+  "source,any") BUILD_COMMAND+=("-G") ;;
+esac
 test -z "${CROSS_COMPILING}" || BUILD_COMMAND+=(--host-arch "${INPUT_HOST_ARCH}" "-Pcross,nocheck")
 IFS=" " read -r -a dpkgargs <<< "${INPUT_BUILD_ARGS}"
 BUILD_COMMAND+=("${dpkgargs[@]}")
