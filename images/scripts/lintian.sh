@@ -44,7 +44,7 @@ lintian --version
 args=(--display-info --pedantic)
 
 IFS=" " read -r -a additional_args <<< "${INPUT_ARGS}"
-args+=("${additional_args[@]}")
+[ ${#additional_args[@]} -eq 0 ] || args+=("${additional_args[@]}")
 
 args+=(--suppress-tags "${INPUT_SUPRESS_TAGS}")
 
@@ -60,7 +60,7 @@ fi
 # See: https://unix.stackexchange.com/questions/528361/dash-not-expanding-glob-wildcards-in-chroot
 changes="$(find . -maxdepth 1 -name \*.changes)"
 output=/tmp/lintian.output
-SUDO lintian "${args[@]}" "${fatal_args[@]}" "${changes}" | \
+SUDO lintian "${args[@]}" ${fatal_args[@]+"${fatal_args[@]}"} "${changes}" | \
     SUDO tee "${output}" || ECODE=$?
 [ "${INPUT_FATAL_WARNING}" = true ] && grep -q '^W: ' "${output}" && ECODE=3
 

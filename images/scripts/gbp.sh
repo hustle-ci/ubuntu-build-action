@@ -142,7 +142,7 @@ BUILD_LOGFILE="${INPUT_OUTPUT_PATH}/${BUILD_LOGFILE_SOURCE}_${BUILD_LOGFILE_VERS
 BUILD_COMMAND=(eatmydata dpkg-buildpackage "--build=${INPUT_BUILD_TYPE}")
 test -z "${CROSS_COMPILING}" || BUILD_COMMAND+=(--host-arch "${INPUT_HOST_ARCH}" "-Pcross,nocheck")
 IFS=" " read -r -a dpkgargs <<< "${INPUT_BUILD_ARGS}"
-BUILD_COMMAND+=("${dpkgargs[@]}")
+[ ${#dpkgargs[@]} -eq 0 ] || BUILD_COMMAND+=("${dpkgargs[@]}")
 # Set architecture to correct in case it is i386 to avoid pitfalls (See #284)
 test "${INPUT_BUILD_ARCH}" = "i386" && BUILD_COMMAND=(/usr/bin/setarch i686 "${BUILD_COMMAND[@]}")
 
