@@ -12,6 +12,11 @@ inputs:
   image:
     description: Target docker image to launch.
     default: ''
+  include_env_match:
+    description: >-
+      Regular expression to match additional environment variables to pass into
+      the launched container.
+    default: '^((DEB_)|(DPKG_))|^SOURCE_DATE_EPOCH$'
   release:
     description: >-
       Specify the target release to run the workflow. By default, everything
