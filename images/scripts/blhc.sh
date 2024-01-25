@@ -46,6 +46,6 @@ echo "::endgroup::"
 
 echo "::group::Outputs"
 { \
-  echo "output_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}")"; \
+  echo "output_path=$(relativepath "${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}")"; \
 } | tee -a "${GITHUB_OUTPUT}"
 echo "::endgroup::"
