@@ -201,6 +201,10 @@ jobs:
 
       - name: Build package
         uses: ./actions/gbp
+        env:
+          # We're not interested in whether package specific test cases work at
+          # this moment.
+          DEB_BUILD_OPTIONS: nocheck
         with:
           image: ${{ format('ghcr.io/{0}/staging:{1}-base-{2}', github.repository_owner, github.run_id, inputs.release) }}
           release: ${{ inputs.release }}
