@@ -37,7 +37,7 @@ build="$(find . -maxdepth 1 -name \*.build)"
 
 echo "::group::blhc arguments"
 IFS=" " read -r -a args <<< "${INPUT_ARGS}"
-args=(--debian --line-numbers --color "${args[@]}")
+args=(--debian --line-numbers --color ${args[@]+"${args[@]}"})
 echo "::endgroup::"
 
 echo "::group::Generate report"

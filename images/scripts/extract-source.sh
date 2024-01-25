@@ -65,7 +65,7 @@ else
     # Fallback using origtargz
     SUDO origtargz -dt
     SUDO cp -v ../*orig*tar* "${INPUT_OUTPUT_PATH}"
-    BUILD_ARGS=(--git-overlay "${BUILD_ARGS[@]}")
+    BUILD_ARGS=(--git-overlay ${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"})
   fi
 
   # As of 2020-09-09, gbp doesn't have a simpler method to extract the
@@ -82,7 +82,7 @@ else
     --git-no-pbuilder \
     --git-no-hooks \
     --git-no-purge \
-    "${BUILD_ARGS[@]}"
+    ${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"}
 fi
 echo "::endgroup::"
 
