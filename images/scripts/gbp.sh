@@ -93,10 +93,23 @@ eatmydata apt-get install --no-install-recommends -y \
 
 # in case we are cross-building, install some more dependencies
 # see #815172 why we need libc-dev and libstdc++-dev
-test -z "${CROSS_COMPILING}" || eatmydata apt-get satisfy --no-install-recommends -y \
-  "libc-dev:${INPUT_HOST_ARCH}" \
-  "libstdc++-dev:${INPUT_HOST_ARCH}" \
-  "crossbuild-essential-${INPUT_HOST_ARCH}"
+if [ -n "${CROSS_COMPILING}" ]; then
+  if apt-get satisfy --simulate base-files; then
+    eatmydata apt-get satisfy --no-install-recommends -y \
+      "libc-dev:${INPUT_HOST_ARCH}" \
+      "libstdc++-dev:${INPUT_HOST_ARCH}" \
+      "crossbuild-essential-${INPUT_HOST_ARCH}"
+  else
+    # `apt-get satisfy` not supported, and `apt-get install` does not accept
+    # pure virtual package libstdc++-dev, so we need to find out the package
+    # name of the latest version.
+    libstdcpp_dev="$(apt-cache search --names-only '^libstdc\+\+-[1-9\.]+-dev$' 2>/dev/null | sort -V | tail -1 | awk '{print $1}')"
+    eatmydata apt-get install --no-install-recommends -y \
+      "libc-dev:${INPUT_HOST_ARCH}" \
+      "${libstdcpp_dev}:${INPUT_HOST_ARCH}" \
+      "crossbuild-essential-${INPUT_HOST_ARCH}"
+  fi
+fi
 
 # when cross-compiling, add 'nocheck' to the DEB_BUILD_OPTIONS
 test -z "${CROSS_COMPILING}" || export DEB_BUILD_OPTIONS="nocheck ${DEB_BUILD_OPTIONS:-}"
@@ -132,14 +145,24 @@ SUDO ccache -s ${ccache_verbose_arg}
 echo "::endgroup::"
 
 # Define buildlog filename
-BUILD_LOGFILE_SOURCE="$(dpkg-parsechangelog -S Source)"
-BUILD_LOGFILE_VERSION="$(dpkg-parsechangelog -S Version)"
+BUILD_LOGFILE_SOURCE="$(dpkg-parsechangelog --show-field Source)"
+BUILD_LOGFILE_VERSION="$(dpkg-parsechangelog --show-field Version)"
 BUILD_LOGFILE_VERSION="${BUILD_LOGFILE_VERSION#*:}"
 BUILD_LOGFILE_ARCH="${INPUT_HOST_ARCH}"
 BUILD_LOGFILE="${INPUT_OUTPUT_PATH}/${BUILD_LOGFILE_SOURCE}_${BUILD_LOGFILE_VERSION}_${BUILD_LOGFILE_ARCH}.build"
 
 # Define build command
-BUILD_COMMAND=(eatmydata dpkg-buildpackage "--build=${INPUT_BUILD_TYPE}")
+BUILD_COMMAND=(eatmydata dpkg-buildpackage)
+# --build=foo may not be supported by older releases, so use short flags instead.
+case "${INPUT_BUILD_TYPE}" in
+  all) BUILD_COMMAND+=("-A") ;;
+  any) BUILD_COMMAND+=("-B") ;;
+  binary) BUILD_COMMAND+=("-b") ;;
+  full) BUILD_COMMAND+=("-F") ;;
+  source) BUILD_COMMAND+=("-S") ;;
+  "source,all") BUILD_COMMAND+=("-g") ;;
+  "source,any") BUILD_COMMAND+=("-G") ;;
+esac
 test -z "${CROSS_COMPILING}" || BUILD_COMMAND+=(--host-arch "${INPUT_HOST_ARCH}" "-Pcross,nocheck")
 IFS=" " read -r -a dpkgargs <<< "${INPUT_BUILD_ARGS}"
 [ ${#dpkgargs[@]} -eq 0 ] || BUILD_COMMAND+=("${dpkgargs[@]}")
