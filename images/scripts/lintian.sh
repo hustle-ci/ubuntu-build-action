@@ -14,7 +14,8 @@ source /usr/local/bin/lib.sh
 set -eu -o pipefail
 
 # Relative path calculcating must be done before chdir().
-INPUT_OUTPUT_PATH="$(realpath -m "${INPUT_OUTPUT_PATH:-${INPUT_SOURCE_PATH}}")"
+INPUT_OUTPUT_PATH="${INPUT_OUTPUT_PATH:-${INPUT_SOURCE_PATH}}"
+[ -z "${INPUT_OUTPUT_PATH%%/*}" ] || INPUT_OUTPUT_PATH="${GITHUB_WORKSPACE}/${INPUT_OUTPUT_PATH}"
 
 cd "${INPUT_SOURCE_PATH}" || exit 1
 create_user_for .
