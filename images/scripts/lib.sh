@@ -52,3 +52,30 @@ fixup_boolean()
     echo "false"
   fi
 }
+
+# $1: parent directory
+# $2: absolute path
+relativepath()
+{
+  local pdir="${1%/}"
+  local abspath="${2%/}"
+  local ret
+
+  ret="$(realpath --relative-to="${pdir}" "${abspath}" 2>/dev/null)"
+  if [ -z "${ret}" ]; then
+    ret="${abspath#"${pdir}"}"
+    case "${ret}" in
+      "${abspath}")
+        # the input path is not fully under the specified parent directory.
+        ;;
+      "")
+        # the input path is the parent directory itself.
+        ret=. ;;
+      *)
+        # the input path is under the specified parent directory.
+        ret="${ret#/}" ;;
+    esac
+  fi
+
+  echo "${ret}"
+}

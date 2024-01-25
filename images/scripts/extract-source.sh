@@ -106,10 +106,10 @@ echo "::endgroup::"
 
 echo "::group::Outputs"
 { \
-  echo "source_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_SOURCE_PATH}")"; \
-  echo "output_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}")"; \
+  echo "source_path=$(relativepath "${GITHUB_WORKSPACE}" "${INPUT_SOURCE_PATH}")"; \
+  echo "output_path=$(relativepath "${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}")"; \
   echo "setup_gitattributes=${INPUT_SETUP_GITATTRIBUTES}"; \
-  echo "built_source_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}/source")"; \
+  echo "built_source_path=$(relativepath "${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}/source")"; \
   echo "built_origtar=$(find . -maxdepth 1 -type f -name \*.orig.tar.\* ! -name \*.asc -printf %f)"; \
 } | tee -a "${GITHUB_OUTPUT}"
 echo "::endgroup::"

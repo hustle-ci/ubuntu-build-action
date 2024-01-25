@@ -50,9 +50,9 @@ echo "::endgroup::"
 
 echo "::group::Outputs"
 { \
-  echo "output_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}")"; \
+  echo "output_path=$(relativepath "${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}")"; \
   echo "release=${INPUT_RELEASE}"; \
-  echo "source_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_SOURCE_PATH}")"; \
+  echo "source_path=$(relativepath "${GITHUB_WORKSPACE}" "${INPUT_SOURCE_PATH}")"; \
   echo "testbed=${INPUT_TESTBED}"; \
 } | tee -a "${GITHUB_OUTPUT}"
 echo "::endgroup::"

@@ -74,9 +74,9 @@ echo "::endgroup::"
 
 echo "::group::Outputs"
 { \
-  echo "output_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}")"; \
-  echo "xml_report_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}/lintian.xml")"; \
-  echo "html_report_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}/lintian.html")"; \
+  echo "output_path=$(relativepath "${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}")"; \
+  echo "xml_report_path=$(relativepath "${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}/lintian.xml")"; \
+  echo "html_report_path=$(relativepath "${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}/lintian.html")"; \
 } | tee -a "${GITHUB_OUTPUT}"
 echo "::endgroup::"
 

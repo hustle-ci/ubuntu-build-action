@@ -43,7 +43,7 @@ echo "::endgroup::"
 
 echo "::group::Outputs"
 { \
-  echo "output_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}")"; \
-  echo "report_path=$(realpath --relative-to="${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}/missing_breaks.xml")"; \
+  echo "output_path=$(relativepath "${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}")"; \
+  echo "report_path=$(relativepath "${GITHUB_WORKSPACE}" "${INPUT_OUTPUT_PATH}/missing_breaks.xml")"; \
 } | tee -a "${GITHUB_OUTPUT}"
 echo "::endgroup::"
