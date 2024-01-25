@@ -231,6 +231,7 @@ jobs:
     needs:
       - full-build
     runs-on: ubuntu-latest
+    if: ${{ inputs.vendor == 'debian' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
