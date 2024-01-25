@@ -166,6 +166,7 @@ jobs:
             ${{ steps.full-build.outputs.output_path }}/*.build
             ${{ steps.full-build.outputs.output_path }}/*.buildinfo
             ${{ steps.full-build.outputs.output_path }}/*.changes
+            ${{ steps.full-build.outputs.output_path }}/*.ddeb
             ${{ steps.full-build.outputs.output_path }}/*.deb
             ${{ steps.full-build.outputs.output_path }}/*.debian.tar.*
             ${{ steps.full-build.outputs.output_path }}/*.dsc
