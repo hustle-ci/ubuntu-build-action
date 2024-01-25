@@ -61,4 +61,6 @@ jobs:
           output_path: ${{ hashFiles('action.yml', 'actions/*/action.yml') }}
           # Ubuntu grep package is imported from Debian
           lintian_suppress_tags: 'bad-distribution-in-changes-file'
+          # grep/trusty did not enable hardening flag
+          blhc_args: ${{ (matrix.release == 'trusty') && '--ignore-flag -fstack-protector-strong' || '' }}
 

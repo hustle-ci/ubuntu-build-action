@@ -297,6 +297,8 @@ jobs:
         uses: ./actions/blhc
         with:
           image: ${{ format('ghcr.io/{0}/staging:{1}-blhc-{2}', github.repository_owner, github.run_id, inputs.default_release) }}
+          # grep/trusty did not enable hardening flag
+          args: ${{ (inputs.release == 'trusty') && '--ignore-flag -fstack-protector-strong' || '' }}
 
   autopkgtest:
     needs:
