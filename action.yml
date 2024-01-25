@@ -27,6 +27,18 @@ inputs:
   autopkgtest_image:
     description: autopkgtest docker image
     default: ''
+  disable_extract_source:
+    default: 'false'
+  disable_missing_breaks:
+    default: 'false'
+  disable_rc_bugs:
+    default: 'false'
+  disable_lintian:
+    default: 'false'
+  disable_blhc:
+    default: 'false'
+  disable_autopkgtest:
+    default: 'false'
   release:
     description: >-
       Specify the target release to run the workflow. By default, everything
@@ -131,6 +143,7 @@ runs:
   steps:
     - name: Extract source
       id: extract
+      if: ${{ ! contains(fromJSON('["yes","true","1"]'), inputs.disable_extract_source) }}
       uses: ./actions/extract-source
       with:
         image: ${{ inputs.gbp_image }}
@@ -144,7 +157,7 @@ runs:
       with:
         image: ${{ inputs.base_image }}
         release: ${{ inputs.release }}
-        source_path: ${{ steps.extract.outputs.built_source_path }}
+        source_path: ${{ (steps.extract.conclusion == 'skipped') && inputs.source_path || steps.extract.outputs.built_source_path }}
         build_arch: ${{ inputs.build_arch }}
         host_arch: ${{ inputs.host_arch }}
         build_type: ${{ inputs.build_type }}
@@ -153,6 +166,7 @@ runs:
         version_bump: ${{ inputs.version_bump }}
     - name: missing-breaks test
       id: missing-breaks
+      if: ${{ ! contains(fromJSON('["yes","true","1"]'), inputs.disable_missing_breaks) }}
       uses: ./actions/missing-breaks
       with:
         image: ${{ inputs.generic_tests_image }}
@@ -161,6 +175,7 @@ runs:
         output_path: ${{ steps.build.outputs.output_path }}
     - name: rc-bugs test
       id: rc-bugs
+      if: ${{ ! contains(fromJSON('["yes","true","1"]'), inputs.disable_rc_bugs) }}
       uses: ./actions/rc-bugs
       with:
         image: ${{ inputs.generic_tests_image }}
@@ -170,7 +185,7 @@ runs:
     - name: lintian test
       id: lintian
       # https://github.com/hustle-ci/debian-build-action/issues/2
-      if: ${{ inputs.release != 'experimental' }}
+      if: ${{ (inputs.release != 'experimental') && ! contains(fromJSON('["yes","true","1"]'), inputs.disable_lintian) }}
       uses: ./actions/lintian
       with:
         image: ${{ inputs.lintian_image }}
@@ -182,6 +197,7 @@ runs:
         suppress_tags: ${{ inputs.lintian_suppress_tags }}
         args: ${{ inputs.lintian_args }}
     - name: blhc test
+      if: ${{ ! contains(fromJSON('["yes","true","1"]'), inputs.disable_blhc) }}
       uses: ./actions/blhc
       with:
         image: ${{ inputs.blhc_image }}
@@ -189,6 +205,7 @@ runs:
         output_path: ${{ steps.build.outputs.output_path }}
         args: ${{ inputs.blhc_args }}
     - name: autopkgtest test
+      if: ${{ ! contains(fromJSON('["yes","true","1"]'), inputs.disable_autopkgtest) }}
       uses: ./actions/autopkgtest
       with:
         image: ${{ inputs.autopkgtest_image }}
