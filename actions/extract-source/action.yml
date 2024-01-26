@@ -11,7 +11,7 @@ author: 'vicamo'
 inputs:
   image:
     description: Target docker image to launch.
-    default: 'ghcr.io/hustle-ci/gbp:latest'
+    default: 'ghcr.io/hustle-ci/gbp:devel'
   source_path:
     description: >-
       Relative path to GITHUB_WORKSPACE where source root is stored. Default is

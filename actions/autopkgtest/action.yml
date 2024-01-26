@@ -11,7 +11,7 @@ author: 'vicamo'
 inputs:
   image:
     description: Target docker image to launch.
-    default: 'ghcr.io/hustle-ci/autopkgtest:latest'
+    default: 'ghcr.io/hustle-ci/autopkgtest:devel'
   release:
     description: >-
       Specify the target release to run the workflow. By default, everything

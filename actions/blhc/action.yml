@@ -11,7 +11,7 @@ author: 'vicamo'
 inputs:
   image:
     description: Target docker image to launch.
-    default: 'ghcr.io/hustle-ci/blhc:latest'
+    default: 'ghcr.io/hustle-ci/blhc:devel'
   source_path:
     description: >-
       Relative path to GITHUB_WORKSPACE where debian build file is stored.

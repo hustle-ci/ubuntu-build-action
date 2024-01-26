@@ -49,7 +49,7 @@ jobs:
         id: transform
         run: |
           targets=(base generic-tests lintian)
-          if echo "${{ inputs.aliases }}" | grep -q latest; then
+          if echo "${{ inputs.aliases }}" | grep -q devel; then
             targets+=(autopkgtest blhc gbp)
           fi
           targets_json="$(jq -c -M -n '$ARGS.positional' --args "${targets[@]}")"

@@ -156,7 +156,7 @@ jobs:
             [ -z "${version}" ] || aliases+=("${version}")
 
             if [ "${release}" = "${DEFAULT_RELEASE}" ]; then
-              aliases+=(latest)
+              aliases+=(devel)
             fi
 
             obj_json="$(echo "${obj_json}" | jq -c -M ".aliases=\"${aliases[*]}\"")"
