@@ -39,6 +39,9 @@ inputs:
     default: 'false'
   disable_autopkgtest:
     default: 'false'
+  vendor:
+    description: Distribution vendor, e.g. debian.
+    default: 'debian'
   release:
     description: >-
       Specify the target release to run the workflow. By default, everything
@@ -175,7 +178,7 @@ runs:
         output_path: ${{ steps.build.outputs.output_path }}
     - name: rc-bugs test
       id: rc-bugs
-      if: ${{ ! contains(fromJSON('["yes","true","1"]'), inputs.disable_rc_bugs) }}
+      if: ${{ (inputs.vendor == 'debian') && ! contains(fromJSON('["yes","true","1"]'), inputs.disable_rc_bugs) }}
       uses: ./actions/rc-bugs
       with:
         image: ${{ inputs.generic_tests_image }}
