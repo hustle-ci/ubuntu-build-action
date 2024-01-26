@@ -103,7 +103,7 @@ jobs:
                 http://archive.ubuntu.com/ubuntu/dists/; \
             cd -; \
           }
-          releases="$(ls -1 "$d" | grep -ve '-\|devel\|trusty\|xenial' | sed 's,^,ubuntu:,' | tr '\n' ' ')"
+          releases="$(ls -1 "$d" | grep -ve '-\|devel' | sed 's,^,ubuntu:,' | tr '\n' ' ')"
           rm -rf "$d"
 
           content="$(wget -q -O - "http://archive.ubuntu.com/ubuntu/dists/devel/Release" | grep -v '^ ')"
