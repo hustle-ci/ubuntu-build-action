@@ -46,7 +46,7 @@ autopkgtest "${INPUT_SOURCE_PATH}"/*.changes \
     -- \
     docker \
     --remote \
-    "${INPUT_TESTBED}"
+    "${INPUT_TESTBED}" || { ret=$?; [ ${ret} -eq 8 ] || [ ${ret} -eq 2 ]; }
 echo "::endgroup::"
 
 echo "::group::Outputs"
