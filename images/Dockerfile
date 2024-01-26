@@ -111,6 +111,7 @@ RUN set -eux; \
 	eatmydata apt-get install --no-install-recommends -y \
 		git \
 		lintian \
+		xz-utils \
 	; \
 	if [ -z "$(apt-cache search --names-only ^python3-junit\\.xml\$)" ]; then \
 		eatmydata apt-get install --no-install-recommends -y \
