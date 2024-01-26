@@ -27,8 +27,8 @@ SUDO mkdir -vp "${INPUT_OUTPUT_PATH}"
 INPUT_FATAL_WARNING="$(fixup_boolean "${INPUT_FATAL_WARNING}" false)"
 # Fixup INPUT_SHOW_OVERRIDES
 INPUT_SHOW_OVERRIDES="$(fixup_boolean "${INPUT_SHOW_OVERRIDES}" false)"
-# Fixup INPUT_SUPRESS_TAGS
-INPUT_SUPRESS_TAGS="${INPUT_SUPRESS_TAGS:-}"
+# Fixup INPUT_SUPPRESS_TAGS
+INPUT_SUPPRESS_TAGS="${INPUT_SUPPRESS_TAGS:-}"
 # Fixup INPUT_ARGS
 INPUT_ARGS="${INPUT_ARGS:-}"
 
@@ -47,7 +47,7 @@ args=(--display-info --pedantic)
 IFS=" " read -r -a additional_args <<< "${INPUT_ARGS}"
 [ ${#additional_args[@]} -eq 0 ] || args+=("${additional_args[@]}")
 
-args+=(--suppress-tags "${INPUT_SUPRESS_TAGS}")
+args+=(--suppress-tags "${INPUT_SUPPRESS_TAGS}")
 
 [ "${INPUT_SHOW_OVERRIDES}" = true ] && args+=(--show-overrides)
 
