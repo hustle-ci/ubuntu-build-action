@@ -39,6 +39,9 @@ inputs:
     default: 'false'
   disable_autopkgtest:
     default: 'false'
+  vendor:
+    description: Distribution vendor, e.g. debian.
+    default: 'debian'
   release:
     description: >-
       Specify the target release to run the workflow. By default, everything
