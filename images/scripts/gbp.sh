@@ -105,7 +105,9 @@ if [ -n "${CROSS_COMPILING}" ]; then
     # name of the latest version.
     libstdcpp_dev="$(apt-cache search --names-only '^libstdc\+\+-[1-9\.]+-dev$' 2>/dev/null | sort -V | tail -1 | awk '{print $1}')"
     eatmydata apt-get install --no-install-recommends -y \
+      "libc6:${INPUT_HOST_ARCH}" \
       "libc-dev:${INPUT_HOST_ARCH}" \
+      "linux-libc-dev:${INPUT_HOST_ARCH}" \
       "${libstdcpp_dev}:${INPUT_HOST_ARCH}" \
       "crossbuild-essential-${INPUT_HOST_ARCH}"
   fi
