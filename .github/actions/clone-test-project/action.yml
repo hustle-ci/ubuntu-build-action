@@ -30,21 +30,12 @@ runs:
       id: clone
       shell: bash
       run: |
-        case "${{ inputs.release }}" in
-          experimental) branch=debian/experimental;;
-          unstable) branch=debian/master;;
-          testing|stable)
-            codename="$(wget -q -O - "https://deb.debian.org/debian/dists/${{ inputs.release }}/Release" | \
-                awk '/^Codename: / { print $2 }')"
-            branch="debian/${codename}"
-            ;;
-          *)
-            echo "Unsupported release: ${{ inputs.release }}" >&2
-            exit 1
-        esac
-
-        # Fallback to debian/master if per release branch is not created
-        git clone -b "${branch}" https://salsa.debian.org/debian/grep || \
-            git clone -b debian/master https://salsa.debian.org/debian/grep
+        git clone -b "ubuntu/${{ inputs.release }}" \
+            https://git.launchpad.net/ubuntu/+source/grep
+        { \
+          cd grep; \
+          git branch --track pristine-tar origin/importer/ubuntu/pristine-tar; \
+          cd -; \
+        }
 
         echo "source_path=grep" >> "${GITHUB_OUTPUT}"
