@@ -102,10 +102,24 @@ jobs:
       - name: Enumerate vendor releases
         id: vendor-releases
         run: |
+          d="$(mktemp -d)"
+          { \
+            cd "$d"; \
+            wget --spider -r --no-parent --level=1 --quiet \
+                --no-host-directories --cut-dirs=2 \
+                http://archive.ubuntu.com/ubuntu/dists/; \
+            cd -; \
+          }
+          releases="$(ls -1 "$d" | grep -ve '-\|devel' | sed 's,^,ubuntu:,' | tr '\n' ' ')"
+          rm -rf "$d"
+
+          content="$(wget -q -O - "http://archive.ubuntu.com/ubuntu/dists/devel/Release" | grep -v '^ ')"
+          default_release="$(echo "${content}" | awk '/^Codename:/ {print $2}')"
+
           echo "::group::Outputs"
           { \
-            echo "releases=debian:experimental debian:unstable debian:testing debian:stable"; \
-            echo "default_release=unstable"; \
+            echo "releases=${releases}"; \
+            echo "default_release=${default_release}"; \
           } | tee -a "${GITHUB_OUTPUT}"
           echo "::endgroup::"
 
@@ -121,7 +135,7 @@ jobs:
             release="${vendor_release#*:}"
             obj_json="{\"vendor\": \"${vendor}\", \"release\": \"${release}\"}"
 
-            content="$(wget -q -O - "https://deb.debian.org/debian/dists/${release}/Release" | grep -v '^ ')"
+            content="$(wget -q -O - "http://archive.ubuntu.com/ubuntu/dists/${release}/Release" | grep -v '^ ')"
 
             archs=()
             for arch in $(echo "${content}" | awk '/^Architectures:/ {$1=""; $0=$0; print $0}'); do
