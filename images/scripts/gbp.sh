@@ -76,6 +76,11 @@ test -z "${CROSS_COMPILING}" || dpkg --add-architecture "${INPUT_HOST_ARCH}"
 # Add deb-src entries
 if [ -f /etc/apt/sources.list ]; then
   sed -n '/^deb\s/s//deb-src /p' /etc/apt/sources.list > /etc/apt/sources.list.d/deb-src.list
+  if [ -n "${CROSS_COMPILING}" ]; then
+    sed -e "s,deb\shttp://[^ ]\+,deb [arch=${INPUT_HOST_ARCH}] http://ports.ubuntu.com/ubuntu-ports/," \
+        /etc/apt/sources.list > /etc/apt/sources.list.d/ubuntu-ports.list
+    sed -i 's/^deb /deb [arch=amd64,i386] /' /etc/apt/sources.list
+  fi
 fi
 if [ -f /etc/apt/sources.list.d/debian.sources ]; then
   sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/debian.sources
