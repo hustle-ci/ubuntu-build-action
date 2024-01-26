@@ -49,6 +49,8 @@ jobs:
           DEB_BUILD_OPTIONS: nocheck
         uses: ./
         with:
+          # https://github.com/hustle-ci/ubuntu-build-action/issues/5
+          disable_missing_breaks: ${{ contains(fromJSON('["trusty","xenial","bionic"]'), matrix.release) && 'true' || 'false' }}
           base_image: ${{ format('ghcr.io/{0}/staging:{1}-base-{2}', github.repository_owner, github.run_id, matrix.release) }}
           gbp_image: ${{ format('ghcr.io/{0}/staging:{1}-gbp-{2}', github.repository_owner, github.run_id, inputs.default_release) }}
           generic_tests_image: ${{ format('ghcr.io/{0}/staging:{1}-generic-tests-{2}', github.repository_owner, github.run_id, matrix.release) }}
