@@ -49,17 +49,10 @@ jobs:
 
           exit $PROBLEMS
 
-      - name: 'reviewdog/shellcheck'
-        uses: haya14busa/action-cond@v1
-        id: reporter
-        with:
-          cond: ${{ github.event_name == 'pull_request' }}
-          if_true: "github-pr-review"
-          if_false: "github-check"
       - uses: reviewdog/action-shellcheck@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: ${{ steps.reporter.outputs.value }}
+          reporter: ${{ (github.event_name == 'pull_request') && 'github-pr-review' || 'github-check' }}
           level: warning
           exclude: |
             */.git/*
@@ -299,15 +292,3 @@ jobs:
       aliases: ${{ matrix.aliases }}
       image-version: ${{ needs.generate-matrix.outputs.image-version }}
       dry-run: ${{ github.event_name == 'pull_request' }}
-
-  prune-staging-tags:
-    needs:
-      - publish-staging-tags
-    if: ${{ always() }}
-    permissions:
-      contents: read
-      packages: write
-    uses: ./.github/workflows/prune-staging-tags.yml
-    with:
-      prune-tags-regexes: |
-        ^${{ github.run_id }}-
