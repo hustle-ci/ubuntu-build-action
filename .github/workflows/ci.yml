@@ -279,15 +279,3 @@ jobs:
       aliases: ${{ matrix.aliases }}
       image-version: ${{ needs.generate-matrix.outputs.image-version }}
       dry-run: ${{ github.event_name == 'pull_request' }}
-
-  prune-staging-tags:
-    needs:
-      - publish-staging-tags
-    if: ${{ always() }}
-    permissions:
-      contents: read
-      packages: write
-    uses: ./.github/workflows/prune-staging-tags.yml
-    with:
-      prune-tags-regexes: |
-        ^${{ github.run_id }}-
