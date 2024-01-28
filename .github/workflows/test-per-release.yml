@@ -62,8 +62,7 @@ jobs:
           rm -rf source
 
       - name: Upload source package
-        # Don't use v4 unless https://github.com/actions/download-artifact/issues/249 solved.
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: per-action-source-${{ inputs.release }}
           path: |
@@ -128,7 +127,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download source tarball
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: per-action-source-${{ inputs.release }}
       # Github ations/upload-artifact does not retain artifact permissions.
@@ -159,7 +158,7 @@ jobs:
           host_arch: ${{ matrix.host-arch }}
 
       - name: Upload binary package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: per-action-binary-${{ steps.full-build.outputs.release }}-${{ steps.full-build.outputs.build_arch }}-${{ steps.full-build.outputs.host_arch }}
           path: |
@@ -189,7 +188,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download source tarball
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: per-action-source-${{ inputs.release }}
       # Github ations/upload-artifact does not retain artifact permissions.
@@ -220,7 +219,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download binary tarball
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: per-action-binary-${{ inputs.release }}-amd64-amd64
 
@@ -241,7 +240,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download binary tarball
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: per-action-binary-${{ inputs.release }}-amd64-amd64
 
@@ -263,11 +262,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download source tarball
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: per-action-source-${{ inputs.release }}
       - name: Download binary tarball
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: per-action-binary-${{ inputs.release }}-amd64-amd64
 
@@ -287,7 +286,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download binary tarball
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: per-action-binary-${{ inputs.release }}-amd64-amd64
 
@@ -305,11 +304,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download source tarball
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: per-action-source-${{ inputs.release }}
       - name: Download binary tarball
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: per-action-binary-${{ inputs.release }}-amd64-amd64
 
